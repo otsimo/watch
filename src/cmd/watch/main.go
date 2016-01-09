@@ -45,8 +45,8 @@ func main() {
 		cli.IntFlag{Name: "grpc-port", Value: watch.DefaultGrpcPort, Usage: "grpc server port", EnvVar: EnvGrpcPortName},
 		cli.StringFlag{Name: "tls-cert-file", Value: "", Usage: "the server's certificate file for TLS connection"},
 		cli.StringFlag{Name: "tls-key-file", Value: "", Usage: "the server's private key file for TLS connection"},
+		cli.BoolFlag{Name: "debug, d", Usage: "enable verbose log", EnvVar: EnvDebugName},
 	}
-
 	app.Flags = flags
 	app.Action = RunAction
 	app.Run(os.Args)

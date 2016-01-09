@@ -8,6 +8,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
 )
 
@@ -29,7 +30,17 @@ func (s *Server) ListenGRPC() {
 		Level:     log.GetLevel(),
 	}
 	grpclog.SetLogger(l)
-	grpcServer := grpc.NewServer()
+
+	var opts []grpc.ServerOption
+	if s.Config.TlsCertFile != "" && s.Config.TlsKeyFile != "" {
+		creds, err := credentials.NewServerTLSFromFile(s.Config.TlsCertFile, s.Config.TlsKeyFile)
+		if err != nil {
+			log.Fatalf("server.go: Failed to generate credentials %v", err)
+		}
+		opts = []grpc.ServerOption{grpc.Creds(creds)}
+	}
+	grpcServer := grpc.NewServer(opts...)
+
 	watchGrpc := &watchGrpcServer{
 		server: s,
 	}
