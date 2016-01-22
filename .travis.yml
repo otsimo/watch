@@ -1,0 +1,13 @@
+sudo: false
+language: go
+go:
+- 1.5.3
+install:
+- go get github.com/constabulary/gb/...
+script:
+- make test
+- make build
+notifications:
+  email: false
+  slack:
+    secure: PCUaAVwFqZTZF81xXawN056GzqGSE95Q75IuJuxFzvlknpTmx1oh+UTdRzWvy8X4zJDCM+ezldKzD41Hh+SuCxXAWkIYp+EwuykTwAZ1RqYakdwQ/7b3aWdY+iiRtEukdX7IYeLq41AwrBLf8mVgw/6lCo9BlxKstrDMZPN6Bd7O9caH5XFZjaZbqJU9f/aOfhDOkhfoCNcfH8lGWW4zrbwq9NcKM3s2u6LDhBmWAWBW+kptUVkZhgfwY7THArZeLjrMvAshYrj38cgJJ6vXC7aW1ft1DHbstAB7/c52N2Aw5OOJk/2c9ovP0NoQHGDrCE+2k2gXeHzLOMU3P5r2XVnREdlYxJffYQTG4Jq4bn/6ZxvSWwfrBh2GVd1qB3IQhjn+wgKatA4H9PiLz3N2IVZE8IldeBr3j32aBAYr2d0ct+8hLdD0TsGXF/LJlZQgm9klrTGJzcvBz5x8DlA0pVQwGst8LbKBeAkdZuH98i2RfFHllOD0/b4rT+3hDniufvwDTXD7xCxe3Ew648ANbXtnIcUYCiX/d96FBD8ZA21xMe7LSHTx98LTEhaJU7JZIaTylOnpk1plT6fyx8pswegykAhhM5QJD+qQTNnms7SqInNyTUC92R0E7N7RRKuS75a4CfQQ74Vp4Hae0L/UUkdzmyeLARjz2BujtN2kwCE=

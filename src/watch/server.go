@@ -14,6 +14,8 @@ import (
 
 type Server struct {
 	Config *Config
+	Oidc   *Client
+	NoAuth bool
 }
 
 func (s *Server) ListenGRPC() {
@@ -48,12 +50,21 @@ func (s *Server) ListenGRPC() {
 	pb.RegisterWatchServiceServer(grpcServer, watchGrpc)
 	log.Infof("server.go: Binding %s for grpc", grpcPort)
 	//Serve
+	go h.run()
 	grpcServer.Serve(lis)
 }
 
 func NewServer(config *Config) *Server {
 	server := &Server{
 		Config: config,
+		NoAuth: config.NoAuth,
+	}
+	if !server.NoAuth {
+		c, err := NewOIDCClient(config.ClientID, config.ClientSecret, config.AuthDiscovery)
+		if err != nil {
+			log.Fatal("Unable to create Oidc client", err)
+		}
+		server.Oidc = c
 	}
 	return server
 }

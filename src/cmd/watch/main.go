@@ -22,6 +22,10 @@ func RunAction(c *cli.Context) {
 	config.GrpcPort = c.Int("grpc-port")
 	config.TlsCertFile = c.String("tls-cert-file")
 	config.TlsKeyFile = c.String("tls-key-file")
+	config.ClientID = c.String("client-id")
+	config.ClientSecret = c.String("client-secret")
+	config.AuthDiscovery = c.String("discovery")
+	config.NoAuth = c.Bool("no-auth")
 
 	if config.Debug {
 		log.SetLevel(log.DebugLevel)
@@ -45,6 +49,10 @@ func main() {
 		cli.IntFlag{Name: "grpc-port", Value: watch.DefaultGrpcPort, Usage: "grpc server port", EnvVar: EnvGrpcPortName},
 		cli.StringFlag{Name: "tls-cert-file", Value: "", Usage: "the server's certificate file for TLS connection"},
 		cli.StringFlag{Name: "tls-key-file", Value: "", Usage: "the server's private key file for TLS connection"},
+		cli.StringFlag{Name: "client-id", Value: "", Usage: "client id"},
+		cli.StringFlag{Name: "client-secret", Value: "", Usage: "client secret"},
+		cli.StringFlag{Name: "discovery", Value: "https://connect.otsimo.com", Usage: "auth discovery url"},
+		cli.BoolFlag{Name: "no-auth", Usage: "do not check token"},
 		cli.BoolFlag{Name: "debug, d", Usage: "enable verbose log", EnvVar: EnvDebugName},
 	}
 	app.Flags = flags
