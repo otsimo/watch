@@ -5,17 +5,14 @@ import (
 	"os"
 	"watch"
 
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 )
 
 var Version string
 var config *watch.Config = watch.NewConfig()
-
-const (
-	EnvDebugName    = "OTSIMO_WATCH_DEBUG"
-	EnvGrpcPortName = "OTSIMO_WATCH_GRPC_PORT"
-)
 
 func RunAction(c *cli.Context) {
 	config.Debug = c.Bool("debug")
@@ -35,6 +32,26 @@ func RunAction(c *cli.Context) {
 	server.ListenGRPC()
 }
 
+func withEnvs(prefix string, flags []cli.Flag) []cli.Flag {
+	var flgs []cli.Flag
+	for _, f := range flags {
+		env := ""
+		spr := strings.Split(f.GetName(), ",")
+		env = prefix + "_" + strings.ToUpper(strings.Replace(spr[0], "-", "_", -1))
+		switch v := f.(type) {
+		case cli.IntFlag:
+			flgs = append(flgs, cli.IntFlag{Name: v.Name, Value: v.Value, Usage: v.Usage, EnvVar: env})
+		case cli.StringFlag:
+			flgs = append(flgs, cli.StringFlag{Name: v.Name, Value: v.Value, Usage: v.Usage, EnvVar: env})
+		case cli.BoolFlag:
+			flgs = append(flgs, cli.BoolFlag{Name: v.Name, Usage: v.Usage, EnvVar: env})
+		default:
+			fmt.Println("unknown")
+		}
+	}
+	return flgs
+}
+
 func main() {
 	fmt.Println("Otsimo Watch")
 
@@ -46,16 +63,16 @@ func main() {
 	var flags []cli.Flag
 
 	flags = []cli.Flag{
-		cli.IntFlag{Name: "grpc-port", Value: watch.DefaultGrpcPort, Usage: "grpc server port", EnvVar: EnvGrpcPortName},
+		cli.IntFlag{Name: "grpc-port", Value: watch.DefaultGrpcPort, Usage: "grpc server port"},
 		cli.StringFlag{Name: "tls-cert-file", Value: "", Usage: "the server's certificate file for TLS connection"},
 		cli.StringFlag{Name: "tls-key-file", Value: "", Usage: "the server's private key file for TLS connection"},
 		cli.StringFlag{Name: "client-id", Value: "", Usage: "client id"},
 		cli.StringFlag{Name: "client-secret", Value: "", Usage: "client secret"},
 		cli.StringFlag{Name: "discovery", Value: "https://connect.otsimo.com", Usage: "auth discovery url"},
 		cli.BoolFlag{Name: "no-auth", Usage: "do not check token"},
-		cli.BoolFlag{Name: "debug, d", Usage: "enable verbose log", EnvVar: EnvDebugName},
+		cli.BoolFlag{Name: "debug, d", Usage: "enable verbose log"},
 	}
-	app.Flags = flags
+	app.Flags = withEnvs("OTSIMO_WATCH", flags)
 	app.Action = RunAction
 	app.Run(os.Args)
 }

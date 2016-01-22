@@ -78,11 +78,6 @@ func authToken(oidc *Client, jwt jose.JWT, mustBeAdmin bool) (string, bool, erro
 		return "", false, fmt.Errorf("auth.go: failed to parse 'aud' claim: %v", err)
 	}
 
-	err = oidc.VerifyJWT(jwt, aud)
-	if err != nil {
-		return "", false, fmt.Errorf("auth.go: Failed to verify signature: %v", err)
-	}
-
 	sub, ok, err := claims.StringClaim("sub")
 	if err != nil {
 		return "", false, fmt.Errorf("auth.go: failed to parse 'sub' claim: %v", err)
@@ -90,11 +85,17 @@ func authToken(oidc *Client, jwt jose.JWT, mustBeAdmin bool) (string, bool, erro
 	if !ok || sub == "" {
 		return "", false, fmt.Errorf("auth.go: missing required 'sub' claim")
 	}
+
+	err = oidc.VerifyJWT(jwt, aud)
+	if err != nil {
+		return sub, false, fmt.Errorf("auth.go: Failed to verify signature: %v", err)
+	}
+
 	typ, _, _ := claims.StringClaim(OtsimoUserTypeClaim)
 
 	if mustBeAdmin {
 		if typ != OtsimoAdminUserType {
-			return "", false, fmt.Errorf("auth.go: user must be admin")
+			return sub, false, fmt.Errorf("auth.go: user must be admin")
 		}
 	}
 	return sub, typ == OtsimoAdminUserType, nil

@@ -102,7 +102,7 @@ func (w *watchGrpcServer) Watch(stream apipb.WatchService_WatchServer) error {
 		return errors.New("failed to get jwt")
 	}
 	id, _, err := authToken(w.server.Oidc, jwt, false)
-	if err != nil {
+	if err != nil && !w.server.NoAuth {
 		logrus.Errorf("watch_server.go: failed to authorize user %+v", err)
 		return errors.New("unauthorized user")
 	}
