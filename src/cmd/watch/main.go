@@ -74,6 +74,8 @@ func main() {
 	}
 	app.Flags = withEnvs("OTSIMO_WATCH", flags)
 	app.Action = RunAction
+    
+    log.Infoln("running", app.Name, "version:", app.Version)
 	app.Run(os.Args)
 }
 
