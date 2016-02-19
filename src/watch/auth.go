@@ -49,12 +49,12 @@ func getJWTToken(ctx context.Context) (jose.JWT, error) {
 		return jose.JWT{}, fmt.Errorf("missing metadata")
 	}
 	var auth []string
-	auth, ok = md["Authorization"]
+	auth, ok = md["authorization"]
 	if !ok || len(auth) == 0 {
-		return jose.JWT{}, fmt.Errorf("missing authorization header")
-	}
-	if len(auth) > 1 {
-		return jose.JWT{}, fmt.Errorf("too many authorization header")
+		auth, ok = md["Authorization"]
+		if !ok || len(auth) == 0 {
+			return jose.JWT{}, errors.New("missing authorization header")
+		}
 	}
 	ah := auth[0]
 	if len(ah) <= 6 || strings.ToUpper(ah[0:6]) != "BEARER" {
