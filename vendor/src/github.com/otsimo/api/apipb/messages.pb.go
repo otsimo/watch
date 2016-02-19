@@ -22,17 +22,20 @@ var _ = math.Inf
 type Gender int32
 
 const (
-	Gender_MALE   Gender = 0
-	Gender_FEMALE Gender = 1
+	Gender_UNKNOWN Gender = 0
+	Gender_MALE    Gender = 1
+	Gender_FEMALE  Gender = 2
 )
 
 var Gender_name = map[int32]string{
-	0: "MALE",
-	1: "FEMALE",
+	0: "UNKNOWN",
+	1: "MALE",
+	2: "FEMALE",
 }
 var Gender_value = map[string]int32{
-	"MALE":   0,
-	"FEMALE": 1,
+	"UNKNOWN": 0,
+	"MALE":    1,
+	"FEMALE":  2,
 }
 
 func (x Gender) String() string {
@@ -120,6 +123,41 @@ func (x GameEntryRequest_RequestType) String() string {
 	return proto.EnumName(GameEntryRequest_RequestType_name, int32(x))
 }
 
+type ListGamesRequest_InnerState int32
+
+const (
+	ListGamesRequest_ANY         ListGamesRequest_InnerState = 0
+	ListGamesRequest_CREATED     ListGamesRequest_InnerState = 1
+	ListGamesRequest_DEVELOPMENT ListGamesRequest_InnerState = 2
+	ListGamesRequest_WAITING     ListGamesRequest_InnerState = 3
+	ListGamesRequest_REJECTED    ListGamesRequest_InnerState = 4
+	ListGamesRequest_VALIDATED   ListGamesRequest_InnerState = 5
+	ListGamesRequest_PRODUCTION  ListGamesRequest_InnerState = 6
+)
+
+var ListGamesRequest_InnerState_name = map[int32]string{
+	0: "ANY",
+	1: "CREATED",
+	2: "DEVELOPMENT",
+	3: "WAITING",
+	4: "REJECTED",
+	5: "VALIDATED",
+	6: "PRODUCTION",
+}
+var ListGamesRequest_InnerState_value = map[string]int32{
+	"ANY":         0,
+	"CREATED":     1,
+	"DEVELOPMENT": 2,
+	"WAITING":     3,
+	"REJECTED":    4,
+	"VALIDATED":   5,
+	"PRODUCTION":  6,
+}
+
+func (x ListGamesRequest_InnerState) String() string {
+	return proto.EnumName(ListGamesRequest_InnerState_name, int32(x))
+}
+
 type Address struct {
 	StreetAddress string `protobuf:"bytes,1,opt,name=street_address,proto3" json:"street_address,omitempty" bson:"street_address,omitempty"`
 	City          string `protobuf:"bytes,2,opt,name=city,proto3" json:"city,omitempty" bson:"city,omitempty"`
@@ -149,10 +187,10 @@ func (m *Profile) String() string { return proto.CompactTextString(m) }
 func (*Profile) ProtoMessage()    {}
 
 type ChildGameEntry struct {
-	Id             gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,1,opt,name=id,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"id,omitempty" bson:"id,omitempty"`
-	Active         bool                          `protobuf:"varint,2,opt,name=active,proto3" json:"active,omitempty" bson:"active,omitempty"`
-	DashboardIndex int32                         `protobuf:"varint,3,opt,name=dashboard_index,proto3" json:"dashboard_index,omitempty" bson:"dashboard_index,omitempty"`
-	Settings       []byte                        `protobuf:"bytes,4,opt,name=settings,proto3" json:"settings,omitempty" bson:"settings,omitempty"`
+	Id             gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,1,opt,name=id,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"id,omitempty" bson:"id"`
+	Active         bool                          `protobuf:"varint,2,opt,name=active,proto3" json:"active,omitempty" bson:"active"`
+	DashboardIndex int32                         `protobuf:"varint,3,opt,name=dashboard_index,proto3" json:"dashboard_index,omitempty" bson:"dashboard_index"`
+	Settings       []byte                        `protobuf:"bytes,4,opt,name=settings,proto3" json:"settings,omitempty" bson:"settings"`
 }
 
 func (m *ChildGameEntry) Reset()         { *m = ChildGameEntry{} }
@@ -162,7 +200,7 @@ func (*ChildGameEntry) ProtoMessage()    {}
 type Child struct {
 	Id          gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,1,opt,name=id,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"id,omitempty" bson:"_id,omitempty"`
 	ParentId    gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,2,opt,name=parent_id,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"parent_id,omitempty" bson:"parent_id,omitempty"`
-	FistName    string                        `protobuf:"bytes,3,opt,name=fist_name,proto3" json:"fist_name,omitempty" bson:"fist_name,omitempty"`
+	FirstName   string                        `protobuf:"bytes,3,opt,name=first_name,proto3" json:"first_name,omitempty" bson:"first_name,omitempty"`
 	LastName    string                        `protobuf:"bytes,4,opt,name=last_name,proto3" json:"last_name,omitempty" bson:"last_name,omitempty"`
 	BirthDay    int64                         `protobuf:"varint,5,opt,name=birth_day,proto3" json:"birth_day,omitempty" bson:"birth_day,omitempty"`
 	Gender      Gender                        `protobuf:"varint,7,opt,name=gender,proto3,enum=apipb.Gender" json:"gender,omitempty" bson:"gender,omitempty"`
@@ -218,13 +256,13 @@ type GameManifest struct {
 	// Homepage is the website of game
 	Homepage string `protobuf:"bytes,4,opt,name=homepage,proto3" json:"homepage,omitempty" bson:"homepage,omitempty"`
 	// Main points to index.html file
-	Main string `protobuf:"bytes,5,opt,name=main,proto3" json:"main,omitempty" bson:"-" cli:"Main"`
+	Main string `protobuf:"bytes,5,opt,name=main,proto3" json:"main,omitempty" bson:"main" cli:"Main"`
 	// Version is current version for using on manifest file
-	Version string `protobuf:"bytes,6,opt,name=version,proto3" json:"version,omitempty" bson:"-" cli:"Version"`
+	Version string `protobuf:"bytes,6,opt,name=version,proto3" json:"version,omitempty" bson:"version" cli:"Version"`
 	// Authors is for using at manifest file
-	Authors []*Author `protobuf:"bytes,7,rep,name=authors" json:"authors,omitempty" bson:"-"`
+	Authors []*Author `protobuf:"bytes,7,rep,name=authors" json:"authors,omitempty" bson:"authors"`
 	// Repository
-	Repository string `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty" bson:"-"`
+	Repository string `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty" bson:"repository"`
 	// Default Visible Name
 	DefaultName string `protobuf:"bytes,9,opt,name=default_name,proto3" json:"default_name,omitempty" bson:"default_name,omitempty" cli:"Default Visible Name"`
 	// Logo is rectangle image
@@ -236,11 +274,11 @@ type GameManifest struct {
 	// Metadata information for each languages
 	Metadata []*GameMetadata `protobuf:"bytes,13,rep,name=metadata" json:"metadata,omitempty" bson:"metadata,omitempty"`
 	// Exclude directories when building
-	Exclude []string `protobuf:"bytes,14,rep,name=exclude" json:"exclude,omitempty" bson:"-"`
+	Exclude []string `protobuf:"bytes,14,rep,name=exclude" json:"exclude,omitempty" bson:"exclude"`
 	// Settings.json path
-	Settings string `protobuf:"bytes,15,opt,name=settings,proto3" json:"settings,omitempty" bson:"-"`
+	Settings string `protobuf:"bytes,15,opt,name=settings,proto3" json:"settings,omitempty" bson:"settings,omitempty"`
 	// KV directory path
-	KvPath string `protobuf:"bytes,16,opt,name=kv_path,proto3" json:"kv_path,omitempty" bson:"-"`
+	KvPath string `protobuf:"bytes,16,opt,name=kv_path,proto3" json:"kv_path,omitempty" bson:"kv_path,omitempty"`
 }
 
 func (m *GameManifest) Reset()         { *m = GameManifest{} }
@@ -262,15 +300,16 @@ func (m *Game) String() string { return proto.CompactTextString(m) }
 func (*Game) ProtoMessage()    {}
 
 type GameRelease struct {
-	ReleaseId    gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,1,opt,name=release_id,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"release_id,omitempty" bson:"_id,omitempty"`
-	GameId       gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,2,opt,name=game_id,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"game_id,omitempty" bson:"game_id,omitempty"`
-	Version      string                        `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty" bson:"version,omitempty"`
+	ReleaseId    gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,1,opt,name=release_id,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"release_id,omitempty" bson:"_id"`
+	GameId       gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,2,opt,name=game_id,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"game_id,omitempty" bson:"game_id"`
+	Version      string                        `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty" bson:"version"`
 	GameManifest *GameManifest                 `protobuf:"bytes,4,opt,name=game_manifest" json:"game_manifest,omitempty" bson:"game_manifest,omitempty"`
-	ReleasedAt   int64                         `protobuf:"varint,5,opt,name=released_at,proto3" json:"released_at,omitempty" bson:"released_at,omitempty"`
+	ReleasedAt   int64                         `protobuf:"varint,5,opt,name=released_at,proto3" json:"released_at,omitempty" bson:"released_at"`
 	ReleasedBy   gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,6,opt,name=released_by,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"released_by,omitempty" bson:"released_by,omitempty"`
-	ReleaseState ReleaseState                  `protobuf:"varint,7,opt,name=release_state,proto3,enum=apipb.ReleaseState" json:"release_state,omitempty" bson:"release_state,omitempty"`
+	ReleaseState ReleaseState                  `protobuf:"varint,7,opt,name=release_state,proto3,enum=apipb.ReleaseState" json:"release_state,omitempty" bson:"release_state"`
 	ValidatedBy  gopkg_in_mgo_v2_bson.ObjectId `protobuf:"bytes,8,opt,name=validated_by,proto3,customtype=gopkg.in/mgo.v2/bson.ObjectId" json:"validated_by,omitempty" bson:"validated_by,omitempty"`
-	ValidatedAt  int64                         `protobuf:"varint,9,opt,name=validated_at,proto3" json:"validated_at,omitempty" bson:"validated_at,omitempty"`
+	ValidatedAt  int64                         `protobuf:"varint,9,opt,name=validated_at,proto3" json:"validated_at,omitempty" bson:"validated_at"`
+	IntVersion   int64                         `protobuf:"varint,10,opt,name=int_version,proto3" json:"int_version,omitempty" bson:"int_version"`
 }
 
 func (m *GameRelease) Reset()         { *m = GameRelease{} }
@@ -331,23 +370,15 @@ func (m *GetChildrenFromProfileResponse) Reset()         { *m = GetChildrenFromP
 func (m *GetChildrenFromProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*GetChildrenFromProfileResponse) ProtoMessage()    {}
 
-type GetGameRequest struct {
-	GameId string              `protobuf:"bytes,1,opt,name=game_id,proto3" json:"game_id,omitempty"`
-	State  RequestReleaseState `protobuf:"varint,2,opt,name=state,proto3,enum=apipb.RequestReleaseState" json:"state,omitempty"`
+type GetGameReleaseRequest struct {
+	GameId  string              `protobuf:"bytes,1,opt,name=game_id,proto3" json:"game_id,omitempty"`
+	Version string              `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	State   RequestReleaseState `protobuf:"varint,3,opt,name=state,proto3,enum=apipb.RequestReleaseState" json:"state,omitempty"`
 }
 
-func (m *GetGameRequest) Reset()         { *m = GetGameRequest{} }
-func (m *GetGameRequest) String() string { return proto.CompactTextString(m) }
-func (*GetGameRequest) ProtoMessage()    {}
-
-type GetGameFromNameRequest struct {
-	UniqueName string              `protobuf:"bytes,1,opt,name=unique_name,proto3" json:"unique_name,omitempty"`
-	State      RequestReleaseState `protobuf:"varint,2,opt,name=state,proto3,enum=apipb.RequestReleaseState" json:"state,omitempty"`
-}
-
-func (m *GetGameFromNameRequest) Reset()         { *m = GetGameFromNameRequest{} }
-func (m *GetGameFromNameRequest) String() string { return proto.CompactTextString(m) }
-func (*GetGameFromNameRequest) ProtoMessage()    {}
+func (m *GetGameReleaseRequest) Reset()         { *m = GetGameReleaseRequest{} }
+func (m *GetGameReleaseRequest) String() string { return proto.CompactTextString(m) }
+func (*GetGameReleaseRequest) ProtoMessage()    {}
 
 type GameEntryRequest struct {
 	ChildId  string                       `protobuf:"bytes,1,opt,name=child_id,proto3" json:"child_id,omitempty"`
@@ -381,55 +412,37 @@ func (m *ValidateRequest) Reset()         { *m = ValidateRequest{} }
 func (m *ValidateRequest) String() string { return proto.CompactTextString(m) }
 func (*ValidateRequest) ProtoMessage()    {}
 
-type IndexRequest struct {
+// Get game by game_id or unique_name
+type GetGameRequest struct {
+	UniqueName string `protobuf:"bytes,1,opt,name=unique_name,proto3" json:"unique_name,omitempty"`
+	GameId     string `protobuf:"bytes,2,opt,name=game_id,proto3" json:"game_id,omitempty"`
 }
 
-func (m *IndexRequest) Reset()         { *m = IndexRequest{} }
-func (m *IndexRequest) String() string { return proto.CompactTextString(m) }
-func (*IndexRequest) ProtoMessage()    {}
-
-type SearchResult struct {
-	GameId string  `protobuf:"bytes,1,opt,name=game_id,proto3" json:"game_id,omitempty"`
-	Score  float64 `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"`
-}
-
-func (m *SearchResult) Reset()         { *m = SearchResult{} }
-func (m *SearchResult) String() string { return proto.CompactTextString(m) }
-func (*SearchResult) ProtoMessage()    {}
+func (m *GetGameRequest) Reset()         { *m = GetGameRequest{} }
+func (m *GetGameRequest) String() string { return proto.CompactTextString(m) }
+func (*GetGameRequest) ProtoMessage()    {}
 
 type ListGamesRequest struct {
-	State RequestReleaseState `protobuf:"varint,1,opt,name=state,proto3,enum=apipb.RequestReleaseState" json:"state,omitempty"`
+	ReleaseState ListGamesRequest_InnerState `protobuf:"varint,1,opt,name=release_state,proto3,enum=apipb.ListGamesRequest_InnerState" json:"release_state,omitempty"`
+	Limit        int32                       `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset       int32                       `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
 }
 
 func (m *ListGamesRequest) Reset()         { *m = ListGamesRequest{} }
 func (m *ListGamesRequest) String() string { return proto.CompactTextString(m) }
 func (*ListGamesRequest) ProtoMessage()    {}
 
-type ListGamesResponse struct {
-	Games []string `protobuf:"bytes,1,rep,name=games" json:"games,omitempty"`
+type ListItem struct {
+	GameId            string       `protobuf:"bytes,1,opt,name=game_id,proto3" json:"game_id,omitempty"`
+	UniqueName        string       `protobuf:"bytes,2,opt,name=unique_name,proto3" json:"unique_name,omitempty"`
+	LatestVersion     string       `protobuf:"bytes,3,opt,name=latest_version,proto3" json:"latest_version,omitempty"`
+	LatestState       ReleaseState `protobuf:"varint,4,opt,name=latest_state,proto3,enum=apipb.ReleaseState" json:"latest_state,omitempty"`
+	ProductionVersion string       `protobuf:"bytes,5,opt,name=production_version,proto3" json:"production_version,omitempty"`
 }
 
-func (m *ListGamesResponse) Reset()         { *m = ListGamesResponse{} }
-func (m *ListGamesResponse) String() string { return proto.CompactTextString(m) }
-func (*ListGamesResponse) ProtoMessage()    {}
-
-type SearchRequest struct {
-	Query string              `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
-	State RequestReleaseState `protobuf:"varint,2,opt,name=state,proto3,enum=apipb.RequestReleaseState" json:"state,omitempty"`
-}
-
-func (m *SearchRequest) Reset()         { *m = SearchRequest{} }
-func (m *SearchRequest) String() string { return proto.CompactTextString(m) }
-func (*SearchRequest) ProtoMessage()    {}
-
-type SearchResponse struct {
-	Type    int32           `protobuf:"varint,1,opt,name=type,proto3" json:"type,omitempty"`
-	Results []*SearchResult `protobuf:"bytes,2,rep,name=results" json:"results,omitempty"`
-}
-
-func (m *SearchResponse) Reset()         { *m = SearchResponse{} }
-func (m *SearchResponse) String() string { return proto.CompactTextString(m) }
-func (*SearchResponse) ProtoMessage()    {}
+func (m *ListItem) Reset()         { *m = ListItem{} }
+func (m *ListItem) String() string { return proto.CompactTextString(m) }
+func (*ListItem) ProtoMessage()    {}
 
 type GetLatestVersionsRequest struct {
 	State   RequestReleaseState `protobuf:"varint,1,opt,name=state,proto3,enum=apipb.RequestReleaseState" json:"state,omitempty"`
@@ -458,6 +471,41 @@ func (m *GameVersionsResponse) Reset()         { *m = GameVersionsResponse{} }
 func (m *GameVersionsResponse) String() string { return proto.CompactTextString(m) }
 func (*GameVersionsResponse) ProtoMessage()    {}
 
+// Search Service
+type IndexRequest struct {
+}
+
+func (m *IndexRequest) Reset()         { *m = IndexRequest{} }
+func (m *IndexRequest) String() string { return proto.CompactTextString(m) }
+func (*IndexRequest) ProtoMessage()    {}
+
+type SearchResult struct {
+	GameId string  `protobuf:"bytes,1,opt,name=game_id,proto3" json:"game_id,omitempty"`
+	Score  float64 `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"`
+}
+
+func (m *SearchResult) Reset()         { *m = SearchResult{} }
+func (m *SearchResult) String() string { return proto.CompactTextString(m) }
+func (*SearchResult) ProtoMessage()    {}
+
+type SearchRequest struct {
+	Query string              `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	State RequestReleaseState `protobuf:"varint,2,opt,name=state,proto3,enum=apipb.RequestReleaseState" json:"state,omitempty"`
+}
+
+func (m *SearchRequest) Reset()         { *m = SearchRequest{} }
+func (m *SearchRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchRequest) ProtoMessage()    {}
+
+type SearchResponse struct {
+	Type    int32           `protobuf:"varint,1,opt,name=type,proto3" json:"type,omitempty"`
+	Results []*SearchResult `protobuf:"bytes,2,rep,name=results" json:"results,omitempty"`
+}
+
+func (m *SearchResponse) Reset()         { *m = SearchResponse{} }
+func (m *SearchResponse) String() string { return proto.CompactTextString(m) }
+func (*SearchResponse) ProtoMessage()    {}
+
 type Response struct {
 	Type    int32  `protobuf:"varint,1,opt,name=type,proto3" json:"type,omitempty"`
 	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
@@ -472,6 +520,7 @@ func init() {
 	proto.RegisterEnum("apipb.ReleaseState", ReleaseState_name, ReleaseState_value)
 	proto.RegisterEnum("apipb.RequestReleaseState", RequestReleaseState_name, RequestReleaseState_value)
 	proto.RegisterEnum("apipb.GameEntryRequest_RequestType", GameEntryRequest_RequestType_name, GameEntryRequest_RequestType_value)
+	proto.RegisterEnum("apipb.ListGamesRequest_InnerState", ListGamesRequest_InnerState_name, ListGamesRequest_InnerState_value)
 }
 func (m *Address) Marshal() (data []byte, err error) {
 	size := m.Size()
@@ -669,11 +718,11 @@ func (m *Child) MarshalTo(data []byte) (int, error) {
 		i = encodeVarintMessages(data, i, uint64(len(m.ParentId)))
 		i += copy(data[i:], m.ParentId)
 	}
-	if len(m.FistName) > 0 {
+	if len(m.FirstName) > 0 {
 		data[i] = 0x1a
 		i++
-		i = encodeVarintMessages(data, i, uint64(len(m.FistName)))
-		i += copy(data[i:], m.FistName)
+		i = encodeVarintMessages(data, i, uint64(len(m.FirstName)))
+		i += copy(data[i:], m.FirstName)
 	}
 	if len(m.LastName) > 0 {
 		data[i] = 0x22
@@ -1135,6 +1184,11 @@ func (m *GameRelease) MarshalTo(data []byte) (int, error) {
 		i++
 		i = encodeVarintMessages(data, i, uint64(m.ValidatedAt))
 	}
+	if m.IntVersion != 0 {
+		data[i] = 0x50
+		i++
+		i = encodeVarintMessages(data, i, uint64(m.IntVersion))
+	}
 	return i, nil
 }
 
@@ -1327,7 +1381,7 @@ func (m *GetChildrenFromProfileResponse) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *GetGameRequest) Marshal() (data []byte, err error) {
+func (m *GetGameReleaseRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -1337,7 +1391,7 @@ func (m *GetGameRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *GetGameRequest) MarshalTo(data []byte) (int, error) {
+func (m *GetGameReleaseRequest) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -1348,37 +1402,14 @@ func (m *GetGameRequest) MarshalTo(data []byte) (int, error) {
 		i = encodeVarintMessages(data, i, uint64(len(m.GameId)))
 		i += copy(data[i:], m.GameId)
 	}
-	if m.State != 0 {
-		data[i] = 0x10
+	if len(m.Version) > 0 {
+		data[i] = 0x12
 		i++
-		i = encodeVarintMessages(data, i, uint64(m.State))
-	}
-	return i, nil
-}
-
-func (m *GetGameFromNameRequest) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *GetGameFromNameRequest) MarshalTo(data []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.UniqueName) > 0 {
-		data[i] = 0xa
-		i++
-		i = encodeVarintMessages(data, i, uint64(len(m.UniqueName)))
-		i += copy(data[i:], m.UniqueName)
+		i = encodeVarintMessages(data, i, uint64(len(m.Version)))
+		i += copy(data[i:], m.Version)
 	}
 	if m.State != 0 {
-		data[i] = 0x10
+		data[i] = 0x18
 		i++
 		i = encodeVarintMessages(data, i, uint64(m.State))
 	}
@@ -1507,7 +1538,7 @@ func (m *ValidateRequest) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *IndexRequest) Marshal() (data []byte, err error) {
+func (m *GetGameRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -1517,39 +1548,22 @@ func (m *IndexRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *IndexRequest) MarshalTo(data []byte) (int, error) {
+func (m *GetGameRequest) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
 	_ = l
-	return i, nil
-}
-
-func (m *SearchResult) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *SearchResult) MarshalTo(data []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.GameId) > 0 {
+	if len(m.UniqueName) > 0 {
 		data[i] = 0xa
+		i++
+		i = encodeVarintMessages(data, i, uint64(len(m.UniqueName)))
+		i += copy(data[i:], m.UniqueName)
+	}
+	if len(m.GameId) > 0 {
+		data[i] = 0x12
 		i++
 		i = encodeVarintMessages(data, i, uint64(len(m.GameId)))
 		i += copy(data[i:], m.GameId)
-	}
-	if m.Score != 0 {
-		data[i] = 0x11
-		i++
-		i = encodeFixed64Messages(data, i, uint64(math.Float64bits(m.Score)))
 	}
 	return i, nil
 }
@@ -1569,77 +1583,25 @@ func (m *ListGamesRequest) MarshalTo(data []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.State != 0 {
+	if m.ReleaseState != 0 {
 		data[i] = 0x8
 		i++
-		i = encodeVarintMessages(data, i, uint64(m.State))
+		i = encodeVarintMessages(data, i, uint64(m.ReleaseState))
 	}
-	return i, nil
-}
-
-func (m *ListGamesResponse) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *ListGamesResponse) MarshalTo(data []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.Games) > 0 {
-		for _, s := range m.Games {
-			data[i] = 0xa
-			i++
-			l = len(s)
-			for l >= 1<<7 {
-				data[i] = uint8(uint64(l)&0x7f | 0x80)
-				l >>= 7
-				i++
-			}
-			data[i] = uint8(l)
-			i++
-			i += copy(data[i:], s)
-		}
-	}
-	return i, nil
-}
-
-func (m *SearchRequest) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *SearchRequest) MarshalTo(data []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if len(m.Query) > 0 {
-		data[i] = 0xa
-		i++
-		i = encodeVarintMessages(data, i, uint64(len(m.Query)))
-		i += copy(data[i:], m.Query)
-	}
-	if m.State != 0 {
+	if m.Limit != 0 {
 		data[i] = 0x10
 		i++
-		i = encodeVarintMessages(data, i, uint64(m.State))
+		i = encodeVarintMessages(data, i, uint64(m.Limit))
+	}
+	if m.Offset != 0 {
+		data[i] = 0x18
+		i++
+		i = encodeVarintMessages(data, i, uint64(m.Offset))
 	}
 	return i, nil
 }
 
-func (m *SearchResponse) Marshal() (data []byte, err error) {
+func (m *ListItem) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -1649,27 +1611,39 @@ func (m *SearchResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *SearchResponse) MarshalTo(data []byte) (int, error) {
+func (m *ListItem) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
 	_ = l
-	if m.Type != 0 {
-		data[i] = 0x8
+	if len(m.GameId) > 0 {
+		data[i] = 0xa
 		i++
-		i = encodeVarintMessages(data, i, uint64(m.Type))
+		i = encodeVarintMessages(data, i, uint64(len(m.GameId)))
+		i += copy(data[i:], m.GameId)
 	}
-	if len(m.Results) > 0 {
-		for _, msg := range m.Results {
-			data[i] = 0x12
-			i++
-			i = encodeVarintMessages(data, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(data[i:])
-			if err != nil {
-				return 0, err
-			}
-			i += n
-		}
+	if len(m.UniqueName) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintMessages(data, i, uint64(len(m.UniqueName)))
+		i += copy(data[i:], m.UniqueName)
+	}
+	if len(m.LatestVersion) > 0 {
+		data[i] = 0x1a
+		i++
+		i = encodeVarintMessages(data, i, uint64(len(m.LatestVersion)))
+		i += copy(data[i:], m.LatestVersion)
+	}
+	if m.LatestState != 0 {
+		data[i] = 0x20
+		i++
+		i = encodeVarintMessages(data, i, uint64(m.LatestState))
+	}
+	if len(m.ProductionVersion) > 0 {
+		data[i] = 0x2a
+		i++
+		i = encodeVarintMessages(data, i, uint64(len(m.ProductionVersion)))
+		i += copy(data[i:], m.ProductionVersion)
 	}
 	return i, nil
 }
@@ -1766,6 +1740,117 @@ func (m *GameVersionsResponse) MarshalTo(data []byte) (int, error) {
 	if len(m.Results) > 0 {
 		for _, msg := range m.Results {
 			data[i] = 0xa
+			i++
+			i = encodeVarintMessages(data, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(data[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *IndexRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *IndexRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	return i, nil
+}
+
+func (m *SearchResult) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *SearchResult) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.GameId) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintMessages(data, i, uint64(len(m.GameId)))
+		i += copy(data[i:], m.GameId)
+	}
+	if m.Score != 0 {
+		data[i] = 0x11
+		i++
+		i = encodeFixed64Messages(data, i, uint64(math.Float64bits(m.Score)))
+	}
+	return i, nil
+}
+
+func (m *SearchRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *SearchRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Query) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintMessages(data, i, uint64(len(m.Query)))
+		i += copy(data[i:], m.Query)
+	}
+	if m.State != 0 {
+		data[i] = 0x10
+		i++
+		i = encodeVarintMessages(data, i, uint64(m.State))
+	}
+	return i, nil
+}
+
+func (m *SearchResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *SearchResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Type != 0 {
+		data[i] = 0x8
+		i++
+		i = encodeVarintMessages(data, i, uint64(m.Type))
+	}
+	if len(m.Results) > 0 {
+		for _, msg := range m.Results {
+			data[i] = 0x12
 			i++
 			i = encodeVarintMessages(data, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(data[i:])
@@ -1933,7 +2018,7 @@ func (m *Child) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovMessages(uint64(l))
 	}
-	l = len(m.FistName)
+	l = len(m.FirstName)
 	if l > 0 {
 		n += 1 + l + sovMessages(uint64(l))
 	}
@@ -2172,6 +2257,9 @@ func (m *GameRelease) Size() (n int) {
 	if m.ValidatedAt != 0 {
 		n += 1 + sovMessages(uint64(m.ValidatedAt))
 	}
+	if m.IntVersion != 0 {
+		n += 1 + sovMessages(uint64(m.IntVersion))
+	}
 	return n
 }
 
@@ -2259,23 +2347,14 @@ func (m *GetChildrenFromProfileResponse) Size() (n int) {
 	return n
 }
 
-func (m *GetGameRequest) Size() (n int) {
+func (m *GetGameReleaseRequest) Size() (n int) {
 	var l int
 	_ = l
 	l = len(m.GameId)
 	if l > 0 {
 		n += 1 + l + sovMessages(uint64(l))
 	}
-	if m.State != 0 {
-		n += 1 + sovMessages(uint64(m.State))
-	}
-	return n
-}
-
-func (m *GetGameFromNameRequest) Size() (n int) {
-	var l int
-	_ = l
-	l = len(m.UniqueName)
+	l = len(m.Version)
 	if l > 0 {
 		n += 1 + l + sovMessages(uint64(l))
 	}
@@ -2345,21 +2424,16 @@ func (m *ValidateRequest) Size() (n int) {
 	return n
 }
 
-func (m *IndexRequest) Size() (n int) {
+func (m *GetGameRequest) Size() (n int) {
 	var l int
 	_ = l
-	return n
-}
-
-func (m *SearchResult) Size() (n int) {
-	var l int
-	_ = l
-	l = len(m.GameId)
+	l = len(m.UniqueName)
 	if l > 0 {
 		n += 1 + l + sovMessages(uint64(l))
 	}
-	if m.Score != 0 {
-		n += 9
+	l = len(m.GameId)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
 	}
 	return n
 }
@@ -2367,48 +2441,39 @@ func (m *SearchResult) Size() (n int) {
 func (m *ListGamesRequest) Size() (n int) {
 	var l int
 	_ = l
-	if m.State != 0 {
-		n += 1 + sovMessages(uint64(m.State))
+	if m.ReleaseState != 0 {
+		n += 1 + sovMessages(uint64(m.ReleaseState))
+	}
+	if m.Limit != 0 {
+		n += 1 + sovMessages(uint64(m.Limit))
+	}
+	if m.Offset != 0 {
+		n += 1 + sovMessages(uint64(m.Offset))
 	}
 	return n
 }
 
-func (m *ListGamesResponse) Size() (n int) {
+func (m *ListItem) Size() (n int) {
 	var l int
 	_ = l
-	if len(m.Games) > 0 {
-		for _, s := range m.Games {
-			l = len(s)
-			n += 1 + l + sovMessages(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *SearchRequest) Size() (n int) {
-	var l int
-	_ = l
-	l = len(m.Query)
+	l = len(m.GameId)
 	if l > 0 {
 		n += 1 + l + sovMessages(uint64(l))
 	}
-	if m.State != 0 {
-		n += 1 + sovMessages(uint64(m.State))
+	l = len(m.UniqueName)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
 	}
-	return n
-}
-
-func (m *SearchResponse) Size() (n int) {
-	var l int
-	_ = l
-	if m.Type != 0 {
-		n += 1 + sovMessages(uint64(m.Type))
+	l = len(m.LatestVersion)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
 	}
-	if len(m.Results) > 0 {
-		for _, e := range m.Results {
-			l = e.Size()
-			n += 1 + l + sovMessages(uint64(l))
-		}
+	if m.LatestState != 0 {
+		n += 1 + sovMessages(uint64(m.LatestState))
+	}
+	l = len(m.ProductionVersion)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
 	}
 	return n
 }
@@ -2449,6 +2514,53 @@ func (m *GameAndVersion) Size() (n int) {
 func (m *GameVersionsResponse) Size() (n int) {
 	var l int
 	_ = l
+	if len(m.Results) > 0 {
+		for _, e := range m.Results {
+			l = e.Size()
+			n += 1 + l + sovMessages(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *IndexRequest) Size() (n int) {
+	var l int
+	_ = l
+	return n
+}
+
+func (m *SearchResult) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.GameId)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
+	}
+	if m.Score != 0 {
+		n += 9
+	}
+	return n
+}
+
+func (m *SearchRequest) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Query)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
+	}
+	if m.State != 0 {
+		n += 1 + sovMessages(uint64(m.State))
+	}
+	return n
+}
+
+func (m *SearchResponse) Size() (n int) {
+	var l int
+	_ = l
+	if m.Type != 0 {
+		n += 1 + sovMessages(uint64(m.Type))
+	}
 	if len(m.Results) > 0 {
 		for _, e := range m.Results {
 			l = e.Size()
@@ -3209,7 +3321,7 @@ func (m *Child) Unmarshal(data []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FistName", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field FirstName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3234,7 +3346,7 @@ func (m *Child) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FistName = string(data[iNdEx:postIndex])
+			m.FirstName = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -4838,6 +4950,25 @@ func (m *GameRelease) Unmarshal(data []byte) error {
 					break
 				}
 			}
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IntVersion", wireType)
+			}
+			m.IntVersion = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.IntVersion |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipMessages(data[iNdEx:])
@@ -5490,7 +5621,7 @@ func (m *GetChildrenFromProfileResponse) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *GetGameRequest) Unmarshal(data []byte) error {
+func (m *GetGameReleaseRequest) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5513,10 +5644,10 @@ func (m *GetGameRequest) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GetGameRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: GetGameReleaseRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetGameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GetGameReleaseRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5549,77 +5680,8 @@ func (m *GetGameRequest) Unmarshal(data []byte) error {
 			m.GameId = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
-			}
-			m.State = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMessages
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				m.State |= (RequestReleaseState(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(data[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *GetGameFromNameRequest) Unmarshal(data []byte) error {
-	l := len(data)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := data[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: GetGameFromNameRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetGameFromNameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UniqueName", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5644,9 +5706,9 @@ func (m *GetGameFromNameRequest) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.UniqueName = string(data[iNdEx:postIndex])
+			m.Version = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
@@ -6118,7 +6180,7 @@ func (m *ValidateRequest) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *IndexRequest) Unmarshal(data []byte) error {
+func (m *GetGameRequest) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6141,63 +6203,42 @@ func (m *IndexRequest) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: IndexRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: GetGameRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: IndexRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(data[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *SearchResult) Unmarshal(data []byte) error {
-	l := len(data)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := data[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: SearchResult: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SearchResult: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GetGameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UniqueName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.UniqueName = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field GameId", wireType)
 			}
@@ -6226,24 +6267,6 @@ func (m *SearchResult) Unmarshal(data []byte) error {
 			}
 			m.GameId = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
-			if wireType != 1 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Score", wireType)
-			}
-			var v uint64
-			if (iNdEx + 8) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += 8
-			v = uint64(data[iNdEx-8])
-			v |= uint64(data[iNdEx-7]) << 8
-			v |= uint64(data[iNdEx-6]) << 16
-			v |= uint64(data[iNdEx-5]) << 24
-			v |= uint64(data[iNdEx-4]) << 32
-			v |= uint64(data[iNdEx-3]) << 40
-			v |= uint64(data[iNdEx-2]) << 48
-			v |= uint64(data[iNdEx-1]) << 56
-			m.Score = float64(math.Float64frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := skipMessages(data[iNdEx:])
@@ -6296,9 +6319,9 @@ func (m *ListGamesRequest) Unmarshal(data []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ReleaseState", wireType)
 			}
-			m.State = 0
+			m.ReleaseState = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMessages
@@ -6308,7 +6331,45 @@ func (m *ListGamesRequest) Unmarshal(data []byte) error {
 				}
 				b := data[iNdEx]
 				iNdEx++
-				m.State |= (RequestReleaseState(b) & 0x7F) << shift
+				m.ReleaseState |= (ListGamesRequest_InnerState(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Limit", wireType)
+			}
+			m.Limit = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Limit |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Offset", wireType)
+			}
+			m.Offset = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Offset |= (int32(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -6334,7 +6395,7 @@ func (m *ListGamesRequest) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *ListGamesResponse) Unmarshal(data []byte) error {
+func (m *ListItem) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6357,15 +6418,15 @@ func (m *ListGamesResponse) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ListGamesResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: ListItem: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ListGamesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ListItem: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Games", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GameId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6390,61 +6451,11 @@ func (m *ListGamesResponse) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Games = append(m.Games, string(data[iNdEx:postIndex]))
+			m.GameId = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(data[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *SearchRequest) Unmarshal(data []byte) error {
-	l := len(data)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := data[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: SearchRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SearchRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
+		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Query", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field UniqueName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6469,101 +6480,13 @@ func (m *SearchRequest) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Query = string(data[iNdEx:postIndex])
+			m.UniqueName = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
-			}
-			m.State = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMessages
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				m.State |= (RequestReleaseState(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(data[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *SearchResponse) Unmarshal(data []byte) error {
-	l := len(data)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := data[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: SearchResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SearchResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMessages
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				m.Type |= (int32(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
+		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Results", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestVersion", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMessages
@@ -6573,22 +6496,68 @@ func (m *SearchResponse) Unmarshal(data []byte) error {
 				}
 				b := data[iNdEx]
 				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
+				stringLen |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthMessages
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Results = append(m.Results, &SearchResult{})
-			if err := m.Results[len(m.Results)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
-				return err
+			m.LatestVersion = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestState", wireType)
 			}
+			m.LatestState = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.LatestState |= (ReleaseState(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProductionVersion", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProductionVersion = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -6902,6 +6871,351 @@ func (m *GameVersionsResponse) Unmarshal(data []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Results = append(m.Results, &GameAndVersion{})
+			if err := m.Results[len(m.Results)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *IndexRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: IndexRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: IndexRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SearchResult) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SearchResult: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SearchResult: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GameId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GameId = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Score", wireType)
+			}
+			var v uint64
+			if (iNdEx + 8) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += 8
+			v = uint64(data[iNdEx-8])
+			v |= uint64(data[iNdEx-7]) << 8
+			v |= uint64(data[iNdEx-6]) << 16
+			v |= uint64(data[iNdEx-5]) << 24
+			v |= uint64(data[iNdEx-4]) << 32
+			v |= uint64(data[iNdEx-3]) << 40
+			v |= uint64(data[iNdEx-2]) << 48
+			v |= uint64(data[iNdEx-1]) << 56
+			m.Score = float64(math.Float64frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SearchRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SearchRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SearchRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Query", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Query = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			m.State = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.State |= (RequestReleaseState(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SearchResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SearchResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SearchResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			m.Type = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Type |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Results", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Results = append(m.Results, &SearchResult{})
 			if err := m.Results[len(m.Results)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}

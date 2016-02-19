@@ -23,30 +23,76 @@ var _ = math.Inf
 type CatalogCategory int32
 
 const (
-	CatalogCategory_FEATURED         CatalogCategory = 0
-	CatalogCategory_NEW              CatalogCategory = 1
-	CatalogCategory_RECOMMENDATION   CatalogCategory = 2
-	CatalogCategory_POPULAR          CatalogCategory = 3
-	CatalogCategory_RECENTLY_UPDATED CatalogCategory = 4
+	CatalogCategory_NONE             CatalogCategory = 0
+	CatalogCategory_FEATURED         CatalogCategory = 1
+	CatalogCategory_NEW              CatalogCategory = 2
+	CatalogCategory_RECOMMENDATION   CatalogCategory = 3
+	CatalogCategory_POPULAR          CatalogCategory = 4
+	CatalogCategory_RECENTLY_UPDATED CatalogCategory = 5
 )
 
 var CatalogCategory_name = map[int32]string{
-	0: "FEATURED",
-	1: "NEW",
-	2: "RECOMMENDATION",
-	3: "POPULAR",
-	4: "RECENTLY_UPDATED",
+	0: "NONE",
+	1: "FEATURED",
+	2: "NEW",
+	3: "RECOMMENDATION",
+	4: "POPULAR",
+	5: "RECENTLY_UPDATED",
 }
 var CatalogCategory_value = map[string]int32{
-	"FEATURED":         0,
-	"NEW":              1,
-	"RECOMMENDATION":   2,
-	"POPULAR":          3,
-	"RECENTLY_UPDATED": 4,
+	"NONE":             0,
+	"FEATURED":         1,
+	"NEW":              2,
+	"RECOMMENDATION":   3,
+	"POPULAR":          4,
+	"RECENTLY_UPDATED": 5,
 }
 
 func (x CatalogCategory) String() string {
 	return proto.EnumName(CatalogCategory_name, int32(x))
+}
+
+type CatalogStatus int32
+
+const (
+	CatalogStatus_DRAFT    CatalogStatus = 0
+	CatalogStatus_APPROVED CatalogStatus = 1
+)
+
+var CatalogStatus_name = map[int32]string{
+	0: "DRAFT",
+	1: "APPROVED",
+}
+var CatalogStatus_value = map[string]int32{
+	"DRAFT":    0,
+	"APPROVED": 1,
+}
+
+func (x CatalogStatus) String() string {
+	return proto.EnumName(CatalogStatus_name, int32(x))
+}
+
+type CatalogListRequest_ListStatus int32
+
+const (
+	CatalogListRequest_BOTH          CatalogListRequest_ListStatus = 0
+	CatalogListRequest_ONLY_DRAFT    CatalogListRequest_ListStatus = 1
+	CatalogListRequest_ONLY_APPROVED CatalogListRequest_ListStatus = 2
+)
+
+var CatalogListRequest_ListStatus_name = map[int32]string{
+	0: "BOTH",
+	1: "ONLY_DRAFT",
+	2: "ONLY_APPROVED",
+}
+var CatalogListRequest_ListStatus_value = map[string]int32{
+	"BOTH":          0,
+	"ONLY_DRAFT":    1,
+	"ONLY_APPROVED": 2,
+}
+
+func (x CatalogListRequest_ListStatus) String() string {
+	return proto.EnumName(CatalogListRequest_ListStatus_name, int32(x))
 }
 
 type CatalogItem struct {
@@ -59,32 +105,75 @@ func (m *CatalogItem) Reset()         { *m = CatalogItem{} }
 func (m *CatalogItem) String() string { return proto.CompactTextString(m) }
 func (*CatalogItem) ProtoMessage()    {}
 
-type CatalogRequest struct {
-	ProfileId     string `protobuf:"bytes,1,opt,name=profile_id,proto3" json:"profile_id,omitempty"`
-	ClientVersion string `protobuf:"bytes,2,opt,name=client_version,proto3" json:"client_version,omitempty"`
+type Catalog struct {
+	Title     string         `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	CreatedAt int64          `protobuf:"varint,2,opt,name=created_at,proto3" json:"created_at,omitempty"`
+	VisibleAt int64          `protobuf:"varint,3,opt,name=visible_at,proto3" json:"visible_at,omitempty"`
+	ExpiresAt int64          `protobuf:"varint,4,opt,name=expires_at,proto3" json:"expires_at,omitempty"`
+	Status    CatalogStatus  `protobuf:"varint,5,opt,name=status,proto3,enum=apipb.CatalogStatus" json:"status,omitempty"`
+	Items     []*CatalogItem `protobuf:"bytes,9,rep,name=items" json:"items,omitempty"`
 }
 
-func (m *CatalogRequest) Reset()         { *m = CatalogRequest{} }
-func (m *CatalogRequest) String() string { return proto.CompactTextString(m) }
-func (*CatalogRequest) ProtoMessage()    {}
+func (m *Catalog) Reset()         { *m = Catalog{} }
+func (m *Catalog) String() string { return proto.CompactTextString(m) }
+func (*Catalog) ProtoMessage()    {}
 
-type CatalogResponse struct {
-	Items []*CatalogItem `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
-}
-
-func (m *CatalogResponse) Reset()         { *m = CatalogResponse{} }
-func (m *CatalogResponse) String() string { return proto.CompactTextString(m) }
-func (*CatalogResponse) ProtoMessage()    {}
-
-func (m *CatalogResponse) GetItems() []*CatalogItem {
+func (m *Catalog) GetItems() []*CatalogItem {
 	if m != nil {
 		return m.Items
 	}
 	return nil
 }
 
+// Request-Response
+type CatalogPullRequest struct {
+	ProfileId     string `protobuf:"bytes,1,opt,name=profile_id,proto3" json:"profile_id,omitempty"`
+	ClientVersion string `protobuf:"bytes,2,opt,name=client_version,proto3" json:"client_version,omitempty"`
+}
+
+func (m *CatalogPullRequest) Reset()         { *m = CatalogPullRequest{} }
+func (m *CatalogPullRequest) String() string { return proto.CompactTextString(m) }
+func (*CatalogPullRequest) ProtoMessage()    {}
+
+type CatalogListRequest struct {
+	Status      CatalogListRequest_ListStatus `protobuf:"varint,1,opt,name=status,proto3,enum=apipb.CatalogListRequest_ListStatus" json:"status,omitempty"`
+	HideExpired bool                          `protobuf:"varint,2,opt,name=hide_expired,proto3" json:"hide_expired,omitempty"`
+	Limit       int32                         `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Time        int64                         `protobuf:"varint,4,opt,name=time,proto3" json:"time,omitempty"`
+	Offset      int32                         `protobuf:"varint,5,opt,name=offset,proto3" json:"offset,omitempty"`
+}
+
+func (m *CatalogListRequest) Reset()         { *m = CatalogListRequest{} }
+func (m *CatalogListRequest) String() string { return proto.CompactTextString(m) }
+func (*CatalogListRequest) ProtoMessage()    {}
+
+type CatalogListResponse struct {
+	Catalogs []*Catalog `protobuf:"bytes,1,rep,name=catalogs" json:"catalogs,omitempty"`
+}
+
+func (m *CatalogListResponse) Reset()         { *m = CatalogListResponse{} }
+func (m *CatalogListResponse) String() string { return proto.CompactTextString(m) }
+func (*CatalogListResponse) ProtoMessage()    {}
+
+func (m *CatalogListResponse) GetCatalogs() []*Catalog {
+	if m != nil {
+		return m.Catalogs
+	}
+	return nil
+}
+
+type CatalogApproveRequest struct {
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+}
+
+func (m *CatalogApproveRequest) Reset()         { *m = CatalogApproveRequest{} }
+func (m *CatalogApproveRequest) String() string { return proto.CompactTextString(m) }
+func (*CatalogApproveRequest) ProtoMessage()    {}
+
 func init() {
 	proto.RegisterEnum("apipb.CatalogCategory", CatalogCategory_name, CatalogCategory_value)
+	proto.RegisterEnum("apipb.CatalogStatus", CatalogStatus_name, CatalogStatus_value)
+	proto.RegisterEnum("apipb.CatalogListRequest_ListStatus", CatalogListRequest_ListStatus_name, CatalogListRequest_ListStatus_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -94,7 +183,10 @@ var _ grpc.ClientConn
 // Client API for CatalogService service
 
 type CatalogServiceClient interface {
-	GetCatalog(ctx context.Context, in *CatalogRequest, opts ...grpc.CallOption) (*CatalogResponse, error)
+	Pull(ctx context.Context, in *CatalogPullRequest, opts ...grpc.CallOption) (*Catalog, error)
+	Push(ctx context.Context, in *Catalog, opts ...grpc.CallOption) (*Response, error)
+	List(ctx context.Context, in *CatalogListRequest, opts ...grpc.CallOption) (*CatalogListResponse, error)
+	Approve(ctx context.Context, in *CatalogApproveRequest, opts ...grpc.CallOption) (*Response, error)
 }
 
 type catalogServiceClient struct {
@@ -105,9 +197,36 @@ func NewCatalogServiceClient(cc *grpc.ClientConn) CatalogServiceClient {
 	return &catalogServiceClient{cc}
 }
 
-func (c *catalogServiceClient) GetCatalog(ctx context.Context, in *CatalogRequest, opts ...grpc.CallOption) (*CatalogResponse, error) {
-	out := new(CatalogResponse)
-	err := grpc.Invoke(ctx, "/apipb.CatalogService/GetCatalog", in, out, c.cc, opts...)
+func (c *catalogServiceClient) Pull(ctx context.Context, in *CatalogPullRequest, opts ...grpc.CallOption) (*Catalog, error) {
+	out := new(Catalog)
+	err := grpc.Invoke(ctx, "/apipb.CatalogService/Pull", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) Push(ctx context.Context, in *Catalog, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := grpc.Invoke(ctx, "/apipb.CatalogService/Push", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) List(ctx context.Context, in *CatalogListRequest, opts ...grpc.CallOption) (*CatalogListResponse, error) {
+	out := new(CatalogListResponse)
+	err := grpc.Invoke(ctx, "/apipb.CatalogService/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) Approve(ctx context.Context, in *CatalogApproveRequest, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := grpc.Invoke(ctx, "/apipb.CatalogService/Approve", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,19 +236,58 @@ func (c *catalogServiceClient) GetCatalog(ctx context.Context, in *CatalogReques
 // Server API for CatalogService service
 
 type CatalogServiceServer interface {
-	GetCatalog(context.Context, *CatalogRequest) (*CatalogResponse, error)
+	Pull(context.Context, *CatalogPullRequest) (*Catalog, error)
+	Push(context.Context, *Catalog) (*Response, error)
+	List(context.Context, *CatalogListRequest) (*CatalogListResponse, error)
+	Approve(context.Context, *CatalogApproveRequest) (*Response, error)
 }
 
 func RegisterCatalogServiceServer(s *grpc.Server, srv CatalogServiceServer) {
 	s.RegisterService(&_CatalogService_serviceDesc, srv)
 }
 
-func _CatalogService_GetCatalog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
-	in := new(CatalogRequest)
+func _CatalogService_Pull_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(CatalogPullRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(CatalogServiceServer).GetCatalog(ctx, in)
+	out, err := srv.(CatalogServiceServer).Pull(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _CatalogService_Push_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(Catalog)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(CatalogServiceServer).Push(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _CatalogService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(CatalogListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(CatalogServiceServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _CatalogService_Approve_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(CatalogApproveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(CatalogServiceServer).Approve(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +299,20 @@ var _CatalogService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*CatalogServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetCatalog",
-			Handler:    _CatalogService_GetCatalog_Handler,
+			MethodName: "Pull",
+			Handler:    _CatalogService_Pull_Handler,
+		},
+		{
+			MethodName: "Push",
+			Handler:    _CatalogService_Push_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _CatalogService_List_Handler,
+		},
+		{
+			MethodName: "Approve",
+			Handler:    _CatalogService_Approve_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
@@ -182,7 +352,7 @@ func (m *CatalogItem) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *CatalogRequest) Marshal() (data []byte, err error) {
+func (m *Catalog) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -192,7 +362,63 @@ func (m *CatalogRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *CatalogRequest) MarshalTo(data []byte) (int, error) {
+func (m *Catalog) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Title) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintCatalog(data, i, uint64(len(m.Title)))
+		i += copy(data[i:], m.Title)
+	}
+	if m.CreatedAt != 0 {
+		data[i] = 0x10
+		i++
+		i = encodeVarintCatalog(data, i, uint64(m.CreatedAt))
+	}
+	if m.VisibleAt != 0 {
+		data[i] = 0x18
+		i++
+		i = encodeVarintCatalog(data, i, uint64(m.VisibleAt))
+	}
+	if m.ExpiresAt != 0 {
+		data[i] = 0x20
+		i++
+		i = encodeVarintCatalog(data, i, uint64(m.ExpiresAt))
+	}
+	if m.Status != 0 {
+		data[i] = 0x28
+		i++
+		i = encodeVarintCatalog(data, i, uint64(m.Status))
+	}
+	if len(m.Items) > 0 {
+		for _, msg := range m.Items {
+			data[i] = 0x4a
+			i++
+			i = encodeVarintCatalog(data, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(data[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *CatalogPullRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *CatalogPullRequest) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -212,7 +438,7 @@ func (m *CatalogRequest) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *CatalogResponse) Marshal() (data []byte, err error) {
+func (m *CatalogListRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -222,13 +448,61 @@ func (m *CatalogResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *CatalogResponse) MarshalTo(data []byte) (int, error) {
+func (m *CatalogListRequest) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
 	_ = l
-	if len(m.Items) > 0 {
-		for _, msg := range m.Items {
+	if m.Status != 0 {
+		data[i] = 0x8
+		i++
+		i = encodeVarintCatalog(data, i, uint64(m.Status))
+	}
+	if m.HideExpired {
+		data[i] = 0x10
+		i++
+		if m.HideExpired {
+			data[i] = 1
+		} else {
+			data[i] = 0
+		}
+		i++
+	}
+	if m.Limit != 0 {
+		data[i] = 0x18
+		i++
+		i = encodeVarintCatalog(data, i, uint64(m.Limit))
+	}
+	if m.Time != 0 {
+		data[i] = 0x20
+		i++
+		i = encodeVarintCatalog(data, i, uint64(m.Time))
+	}
+	if m.Offset != 0 {
+		data[i] = 0x28
+		i++
+		i = encodeVarintCatalog(data, i, uint64(m.Offset))
+	}
+	return i, nil
+}
+
+func (m *CatalogListResponse) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *CatalogListResponse) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Catalogs) > 0 {
+		for _, msg := range m.Catalogs {
 			data[i] = 0xa
 			i++
 			i = encodeVarintCatalog(data, i, uint64(msg.Size()))
@@ -238,6 +512,30 @@ func (m *CatalogResponse) MarshalTo(data []byte) (int, error) {
 			}
 			i += n
 		}
+	}
+	return i, nil
+}
+
+func (m *CatalogApproveRequest) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *CatalogApproveRequest) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Title) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintCatalog(data, i, uint64(len(m.Title)))
+		i += copy(data[i:], m.Title)
 	}
 	return i, nil
 }
@@ -285,7 +583,35 @@ func (m *CatalogItem) Size() (n int) {
 	return n
 }
 
-func (m *CatalogRequest) Size() (n int) {
+func (m *Catalog) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Title)
+	if l > 0 {
+		n += 1 + l + sovCatalog(uint64(l))
+	}
+	if m.CreatedAt != 0 {
+		n += 1 + sovCatalog(uint64(m.CreatedAt))
+	}
+	if m.VisibleAt != 0 {
+		n += 1 + sovCatalog(uint64(m.VisibleAt))
+	}
+	if m.ExpiresAt != 0 {
+		n += 1 + sovCatalog(uint64(m.ExpiresAt))
+	}
+	if m.Status != 0 {
+		n += 1 + sovCatalog(uint64(m.Status))
+	}
+	if len(m.Items) > 0 {
+		for _, e := range m.Items {
+			l = e.Size()
+			n += 1 + l + sovCatalog(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *CatalogPullRequest) Size() (n int) {
 	var l int
 	_ = l
 	l = len(m.ProfileId)
@@ -299,14 +625,45 @@ func (m *CatalogRequest) Size() (n int) {
 	return n
 }
 
-func (m *CatalogResponse) Size() (n int) {
+func (m *CatalogListRequest) Size() (n int) {
 	var l int
 	_ = l
-	if len(m.Items) > 0 {
-		for _, e := range m.Items {
+	if m.Status != 0 {
+		n += 1 + sovCatalog(uint64(m.Status))
+	}
+	if m.HideExpired {
+		n += 2
+	}
+	if m.Limit != 0 {
+		n += 1 + sovCatalog(uint64(m.Limit))
+	}
+	if m.Time != 0 {
+		n += 1 + sovCatalog(uint64(m.Time))
+	}
+	if m.Offset != 0 {
+		n += 1 + sovCatalog(uint64(m.Offset))
+	}
+	return n
+}
+
+func (m *CatalogListResponse) Size() (n int) {
+	var l int
+	_ = l
+	if len(m.Catalogs) > 0 {
+		for _, e := range m.Catalogs {
 			l = e.Size()
 			n += 1 + l + sovCatalog(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *CatalogApproveRequest) Size() (n int) {
+	var l int
+	_ = l
+	l = len(m.Title)
+	if l > 0 {
+		n += 1 + l + sovCatalog(uint64(l))
 	}
 	return n
 }
@@ -441,7 +798,7 @@ func (m *CatalogItem) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *CatalogRequest) Unmarshal(data []byte) error {
+func (m *Catalog) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -464,10 +821,196 @@ func (m *CatalogRequest) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CatalogRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: Catalog: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CatalogRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Catalog: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCatalog
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Title = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreatedAt", wireType)
+			}
+			m.CreatedAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.CreatedAt |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VisibleAt", wireType)
+			}
+			m.VisibleAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.VisibleAt |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpiresAt", wireType)
+			}
+			m.ExpiresAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.ExpiresAt |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Status |= (CatalogStatus(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Items", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCatalog
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Items = append(m.Items, &CatalogItem{})
+			if err := m.Items[len(m.Items)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCatalog(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCatalog
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CatalogPullRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCatalog
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CatalogPullRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CatalogPullRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -549,7 +1092,7 @@ func (m *CatalogRequest) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *CatalogResponse) Unmarshal(data []byte) error {
+func (m *CatalogListRequest) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -572,15 +1115,161 @@ func (m *CatalogResponse) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CatalogResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: CatalogListRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CatalogResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CatalogListRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Status |= (CatalogListRequest_ListStatus(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HideExpired", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				v |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.HideExpired = bool(v != 0)
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Limit", wireType)
+			}
+			m.Limit = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Limit |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Time", wireType)
+			}
+			m.Time = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Time |= (int64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Offset", wireType)
+			}
+			m.Offset = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Offset |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCatalog(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCatalog
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CatalogListResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCatalog
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CatalogListResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CatalogListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Items", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Catalogs", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -604,10 +1293,89 @@ func (m *CatalogResponse) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Items = append(m.Items, &CatalogItem{})
-			if err := m.Items[len(m.Items)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
+			m.Catalogs = append(m.Catalogs, &Catalog{})
+			if err := m.Catalogs[len(m.Catalogs)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCatalog(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthCatalog
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CatalogApproveRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCatalog
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CatalogApproveRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CatalogApproveRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCatalog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCatalog
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Title = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

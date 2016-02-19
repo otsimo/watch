@@ -16,9 +16,14 @@
 
 	It has these top-level messages:
 		CatalogItem
-		CatalogRequest
-		CatalogResponse
+		Catalog
+		CatalogPullRequest
+		CatalogListRequest
+		CatalogListResponse
+		CatalogApproveRequest
+		DeviceInfo
 		Event
+		AppEventData
 		Address
 		Profile
 		ChildGameEntry
@@ -34,20 +39,20 @@
 		GetChildrenFromProfileRequest
 		ChangeChildActivationRequest
 		GetChildrenFromProfileResponse
-		GetGameRequest
-		GetGameFromNameRequest
+		GetGameReleaseRequest
 		GameEntryRequest
 		PublishResponse
 		ValidateRequest
-		IndexRequest
-		SearchResult
+		GetGameRequest
 		ListGamesRequest
-		ListGamesResponse
-		SearchRequest
-		SearchResponse
+		ListItem
 		GetLatestVersionsRequest
 		GameAndVersion
 		GameVersionsResponse
+		IndexRequest
+		SearchResult
+		SearchRequest
+		SearchResponse
 		Response
 		EmitRequest
 		EmitResponse

@@ -2,7 +2,6 @@ package watch
 
 import (
 	"errors"
-	"io"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/otsimo/api/apipb"
@@ -26,48 +25,23 @@ func (con *connection) close() {
 	h.unregister <- con
 }
 
-func (con *connection) receiveLoop() error {
-	for {
-		req, err := con.stream.Recv()
-		if err == io.EOF {
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-
-		switch req.Type {
-		case apipb.WatchRequest_CREATE:
-			con.send <- &apipb.WatchResponse{
-				Created: true,
-			}
-		case apipb.WatchRequest_CANCEL:
-			con.send <- &apipb.WatchResponse{
-				Canceled: true,
-			}
-		default:
-			panic("not implemented")
-		}
-	}
-}
-
-func (con *connection) sendLoop() {
+func (con *connection) sendLoop() error {
 	for {
 		select {
 		case c, ok := <-con.send:
-			logrus.Debugln("watch_server.go: sending:", c)
+			logrus.Debugf("watch_server.go: sending: %v", c)
 			if !ok {
-				return
+				return errors.New("internal")
 			}
 			if err := con.stream.Send(c); err != nil {
-				return
+				return err
 			}
 		case <-con.closec:
 			logrus.Debugln("watch_server.go: con.closec run")
 			for {
 				_, ok := <-con.send
 				if !ok {
-					return
+					return errors.New("close error")
 				}
 			}
 		}
@@ -84,18 +58,17 @@ func (w *watchGrpcServer) Emit(ctx context.Context, in *apipb.EmitRequest) (*api
 		logrus.Errorf("watch_server.go: failed to get jwt %+v", err)
 		return nil, errors.New("failed to get jwt")
 	}
-	id, _, err := authToken(w.server.Oidc, jwt, false)
+	_, _, err = authToken(w.server.Oidc, jwt, false)
 	if err != nil {
 		logrus.Errorf("watch_server.go: failed to authorize user %+v", err)
 		return nil, errors.New("unauthorized user")
 	}
-	if id == in.ProfileId {
-		h.broadcast <- in
-	}
+
+	h.broadcast <- in
 	return &apipb.EmitResponse{}, nil
 }
 
-func (w *watchGrpcServer) Watch(stream apipb.WatchService_WatchServer) error {
+func (w *watchGrpcServer) Watch(req *apipb.WatchRequest, stream apipb.WatchService_WatchServer) error {
 	jwt, err := getJWTToken(stream.Context())
 	if err != nil {
 		logrus.Errorf("watch_server.go: failed to get jwt %+v", err)
@@ -106,13 +79,17 @@ func (w *watchGrpcServer) Watch(stream apipb.WatchService_WatchServer) error {
 		logrus.Errorf("watch_server.go: failed to authorize user %+v", err)
 		return errors.New("unauthorized user")
 	}
+
 	con := &connection{
 		id:     id,
 		stream: stream,
 		send:   make(chan *apipb.WatchResponse, sendStreamBufLen),
 		closec: make(chan struct{}),
 	}
+
+	logrus.Debugf("watch_server.go: started to watch %s", id)
+	h.register <- con
+
 	defer con.close()
-	go con.sendLoop()
-	return con.receiveLoop()
+	return con.sendLoop()
 }
