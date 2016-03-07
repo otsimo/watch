@@ -54,6 +54,7 @@ type watchGrpcServer struct {
 
 func (w *watchGrpcServer) Emit(ctx context.Context, in *apipb.EmitRequest) (*apipb.EmitResponse, error) {
 	jwt, err := getJWTToken(ctx)
+	logrus.Debugf("watch_server.go: Emit %+v", in)
 	if err != nil {
 		logrus.Errorf("watch_server.go: failed to get jwt %+v", err)
 		return nil, errors.New("failed to get jwt")
