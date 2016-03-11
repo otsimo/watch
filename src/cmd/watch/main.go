@@ -23,6 +23,10 @@ func RunAction(c *cli.Context) {
 	config.ClientSecret = c.String("client-secret")
 	config.AuthDiscovery = c.String("discovery")
 	config.NoAuth = c.Bool("no-auth")
+	config.RedisAddr = c.String("redis-addr")
+	config.RedisDB = int64(c.Int("redis-db"))
+	config.RedisPassword = c.String("redis-password")
+	config.NoRedis = c.Bool("no-redis")
 
 	if config.Debug {
 		log.SetLevel(log.DebugLevel)
@@ -70,6 +74,12 @@ func main() {
 		cli.StringFlag{Name: "client-secret", Value: "", Usage: "client secret"},
 		cli.StringFlag{Name: "discovery", Value: "https://connect.otsimo.com", Usage: "auth discovery url"},
 		cli.BoolFlag{Name: "no-auth", Usage: "do not check token"},
+
+		cli.StringFlag{Name: "redis-addr", Value: "localhost:6379", Usage: "redis address"},
+		cli.StringFlag{Name: "redis-password", Value: "", Usage: "redis password"},
+		cli.IntFlag{Name: "redis-db", Value: 0, Usage: "redis db"},
+		cli.BoolFlag{Name: "no-redis", Usage: "don't use redis"},
+
 		cli.BoolFlag{Name: "debug, d", Usage: "enable verbose log"},
 	}
 	app.Flags = withEnvs("OTSIMO_WATCH", flags)

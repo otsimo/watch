@@ -15,6 +15,11 @@ type Config struct {
 	ClientID      string
 	ClientSecret  string
 	AuthDiscovery string
+
+	RedisAddr     string
+	RedisPassword string
+	RedisDB       int64
+	NoRedis       bool
 }
 
 func (c *Config) GetGrpcPortString() string {

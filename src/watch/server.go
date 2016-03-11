@@ -15,6 +15,7 @@ import (
 type Server struct {
 	Config *Config
 	Oidc   *Client
+	Redis  *RedisClient
 	NoAuth bool
 }
 
@@ -50,6 +51,10 @@ func (s *Server) ListenGRPC() {
 	pb.RegisterWatchServiceServer(grpcServer, watchGrpc)
 	log.Infof("server.go: Binding %s for grpc", grpcPort)
 	//Serve
+	if !s.Config.NoRedis {
+		s.Redis = NewRedisClient(s.Config)
+	}
+
 	go h.run()
 	grpcServer.Serve(lis)
 }
@@ -67,4 +72,12 @@ func NewServer(config *Config) *Server {
 		server.Oidc = c
 	}
 	return server
+}
+
+func (s *Server) Emit(in *pb.EmitRequest) {
+	if s.Config.NoRedis {
+		h.broadcast <- in
+	} else {
+		s.Redis.Emit(in)
+	}
 }

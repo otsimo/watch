@@ -64,8 +64,7 @@ func (w *watchGrpcServer) Emit(ctx context.Context, in *apipb.EmitRequest) (*api
 		logrus.Errorf("watch_server.go: failed to authorize user %+v", err)
 		return nil, errors.New("unauthorized user")
 	}
-
-	h.broadcast <- in
+	w.server.Emit(in)
 	return &apipb.EmitResponse{}, nil
 }
 
