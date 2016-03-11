@@ -27,10 +27,13 @@ func NewRedisClient(config *Config) (*RedisClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &RedisClient{
+
+	rc := &RedisClient{
 		client: client,
 		pubsub:ps,
-	}, nil
+	}
+	go rc.Receive()
+	return rc, nil
 }
 
 func (r *RedisClient) Emit(in *apipb.EmitRequest) {
@@ -51,7 +54,7 @@ func (r *RedisClient) Receive() {
 			logrus.Errorf("Failed to receive message, error=%+v", err)
 			continue
 		}
-		data, err := base64.StdEncoding.DecodeString(mes.String())
+		data, err := base64.StdEncoding.DecodeString(mes.Payload)
 		if err != nil {
 			logrus.Errorf("Failed to receive message, error=%+v", err)
 			continue
@@ -62,7 +65,6 @@ func (r *RedisClient) Receive() {
 			logrus.Errorf("Failed to Unmarshal byte data")
 			continue
 		}
-		logrus.Debugf("broadcast emit request come from redis %+v", req)
 		h.broadcast <- &req
 	}
 }
