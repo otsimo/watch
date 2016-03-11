@@ -39,7 +39,9 @@ func (r *RedisClient) Emit(in *apipb.EmitRequest) {
 		logrus.Errorf("failed to marshall request error=%+v", err)
 		return
 	}
-	r.client.Publish(channelName, base64.StdEncoding.EncodeToString(data))
+	if err := r.client.Publish(channelName, base64.StdEncoding.EncodeToString(data)).Err(); err != nil {
+		logrus.Errorf("failed to publish emitrequest, %+v", err)
+	}
 }
 
 func (r *RedisClient) Receive() {
@@ -60,6 +62,7 @@ func (r *RedisClient) Receive() {
 			logrus.Errorf("Failed to Unmarshal byte data")
 			continue
 		}
+		logrus.Debugf("broadcast emit request come from redis %+v", req)
 		h.broadcast <- &req
 	}
 }
