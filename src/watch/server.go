@@ -52,7 +52,11 @@ func (s *Server) ListenGRPC() {
 	log.Infof("server.go: Binding %s for grpc", grpcPort)
 	//Serve
 	if !s.Config.NoRedis {
-		s.Redis = NewRedisClient(s.Config)
+		cl, err := NewRedisClient(s.Config)
+		if err != nil {
+			log.Fatalf("failed to create redis client err=%v", err)
+		}
+		s.Redis = cl
 	}
 
 	go h.run()

@@ -5,7 +5,6 @@ import (
 	redis "gopkg.in/redis.v3"
 	"encoding/base64"
 	"github.com/Sirupsen/logrus"
-	"fmt"
 )
 
 const (
@@ -44,15 +43,23 @@ func (r *RedisClient) Emit(in *apipb.EmitRequest) {
 }
 
 func (r *RedisClient) Receive() {
-
 	for {
 		mes, err := r.pubsub.ReceiveMessage()
 		if err != nil {
-			fmt.Errorf("Failed to receive message, error=%+v", err)
+			logrus.Errorf("Failed to receive message, error=%+v", err)
+			continue
 		}
 		data, err := base64.StdEncoding.DecodeString(mes.String())
 		if err != nil {
-			fmt.Errorf("Failed to receive message, error=%+v", err)
+			logrus.Errorf("Failed to receive message, error=%+v", err)
+			continue
 		}
+		req := apipb.EmitRequest{}
+		err = req.Unmarshal(data)
+		if err != nil {
+			logrus.Errorf("Failed to Unmarshal byte data")
+			continue
+		}
+		h.broadcast <- &req
 	}
 }
