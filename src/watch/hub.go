@@ -27,7 +27,6 @@ func (h *hub) run() {
 		case c := <-h.unregister:
 			if _, ok := h.connections[c.id]; ok {
 				delete(h.connections, c.id)
-				close(c.send)
 			}
 		case m := <-h.broadcast:
 			if con, ok := h.connections[m.ProfileId]; ok {
