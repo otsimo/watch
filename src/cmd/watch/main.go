@@ -26,6 +26,7 @@ func RunAction(c *cli.Context) {
 	config.RedisAddr = c.String("redis-addr")
 	config.RedisDB = int64(c.Int("redis-db"))
 	config.RedisPassword = c.String("redis-password")
+	config.RedisMasterName = c.String("redis-master")
 	config.RedisSentinel = c.Bool("redis-sentinel")
 	config.NoRedis = c.Bool("no-redis")
 
@@ -78,6 +79,7 @@ func main() {
 
 		cli.StringFlag{Name: "redis-addr", Value: "localhost:6379", Usage: "redis address"},
 		cli.StringFlag{Name: "redis-password", Value: "", Usage: "redis password"},
+		cli.StringFlag{Name: "redis-master", Value: config.RedisMasterName, Usage: "redis master name"},
 		cli.IntFlag{Name: "redis-db", Value: 0, Usage: "redis db"},
 		cli.BoolFlag{Name: "no-redis", Usage: "don't use redis"},
 		cli.BoolFlag{Name: "redis-sentinel", Usage: "enable redis sentinel"},

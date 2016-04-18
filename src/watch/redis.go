@@ -22,7 +22,7 @@ func NewRedisClient(config *Config) (*RedisClient, error) {
 
 	if config.RedisSentinel {
 		client = redis.NewFailoverClient(&redis.FailoverOptions{
-			MasterName:    "master",
+			MasterName:    config.RedisMasterName,
 			SentinelAddrs: []string{config.RedisAddr},
 			Password:      config.RedisPassword,
 			DB:            config.RedisDB,

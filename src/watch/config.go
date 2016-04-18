@@ -16,11 +16,12 @@ type Config struct {
 	ClientSecret  string
 	AuthDiscovery string
 
-	RedisAddr     string
-	RedisPassword string
-	RedisDB       int64
-	RedisSentinel bool
-	NoRedis       bool
+	RedisAddr       string
+	RedisPassword   string
+	RedisDB         int64
+	RedisSentinel   bool
+	RedisMasterName string
+	NoRedis         bool
 }
 
 func (c *Config) GetGrpcPortString() string {
@@ -28,5 +29,5 @@ func (c *Config) GetGrpcPortString() string {
 }
 
 func NewConfig() *Config {
-	return &Config{GrpcPort: DefaultGrpcPort}
+	return &Config{GrpcPort: DefaultGrpcPort, RedisMasterName: "mymaster"}
 }
