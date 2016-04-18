@@ -1,10 +1,11 @@
 package watch
 
 import (
+	"encoding/base64"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/otsimo/api/apipb"
 	redis "gopkg.in/redis.v3"
-	"encoding/base64"
-	"github.com/Sirupsen/logrus"
 )
 
 const (
@@ -17,11 +18,22 @@ type RedisClient struct {
 }
 
 func NewRedisClient(config *Config) (*RedisClient, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     config.RedisAddr,
-		Password: config.RedisPassword,
-		DB:       config.RedisDB,
-	})
+	var client *redis.Client
+
+	if config.RedisSentinel {
+		client = redis.NewFailoverClient(&redis.FailoverOptions{
+			MasterName:    "master",
+			SentinelAddrs: []string{config.RedisAddr},
+			Password:      config.RedisPassword,
+			DB:            config.RedisDB,
+		})
+	} else {
+		client = redis.NewClient(&redis.Options{
+			Addr:     config.RedisAddr,
+			Password: config.RedisPassword,
+			DB:       config.RedisDB,
+		})
+	}
 	ps, err := client.Subscribe(channelName)
 
 	if err != nil {
@@ -30,7 +42,7 @@ func NewRedisClient(config *Config) (*RedisClient, error) {
 
 	rc := &RedisClient{
 		client: client,
-		pubsub:ps,
+		pubsub: ps,
 	}
 	go rc.Receive()
 	return rc, nil

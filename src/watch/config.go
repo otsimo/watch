@@ -19,6 +19,7 @@ type Config struct {
 	RedisAddr     string
 	RedisPassword string
 	RedisDB       int64
+	RedisSentinel bool
 	NoRedis       bool
 }
 
