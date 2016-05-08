@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/otsimo/api/apipb"
+	apipb "github.com/otsimo/otsimopb"
 	redis "gopkg.in/redis.v3"
 )
 

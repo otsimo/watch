@@ -80,9 +80,9 @@ func main() {
 		cli.StringFlag{Name: "redis-addr", Value: "localhost:6379", Usage: "redis address"},
 		cli.StringFlag{Name: "redis-password", Value: "", Usage: "redis password"},
 		cli.StringFlag{Name: "redis-master", Value: config.RedisMasterName, Usage: "redis master name"},
+		cli.BoolFlag{Name: "redis-sentinel", Usage: "enable redis sentinel"},
 		cli.IntFlag{Name: "redis-db", Value: 0, Usage: "redis db"},
 		cli.BoolFlag{Name: "no-redis", Usage: "don't use redis"},
-		cli.BoolFlag{Name: "redis-sentinel", Usage: "enable redis sentinel"},
 		cli.BoolFlag{Name: "debug, d", Usage: "enable verbose log"},
 	}
 	app.Flags = withEnvs("OTSIMO_WATCH", flags)

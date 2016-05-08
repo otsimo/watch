@@ -4,7 +4,7 @@ import (
 	"net"
 	"os"
 
-	pb "github.com/otsimo/api/apipb"
+	pb "github.com/otsimo/otsimopb"
 
 	log "github.com/Sirupsen/logrus"
 	"google.golang.org/grpc"

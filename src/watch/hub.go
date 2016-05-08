@@ -2,7 +2,7 @@ package watch
 
 import (
 	"github.com/Sirupsen/logrus"
-	"github.com/otsimo/api/apipb"
+	apipb "github.com/otsimo/otsimopb"
 )
 
 type hub struct {
