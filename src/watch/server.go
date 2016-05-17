@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type Server struct {
@@ -50,7 +51,6 @@ func (s *Server) ListenGRPC() {
 
 	pb.RegisterWatchServiceServer(grpcServer, watchGrpc)
 	log.Infof("server.go: Binding %s for grpc", grpcPort)
-	//Serve
 	if !s.Config.NoRedis {
 		cl, err := NewRedisClient(s.Config)
 		if err != nil {
@@ -58,9 +58,10 @@ func (s *Server) ListenGRPC() {
 		}
 		s.Redis = cl
 	}
-
+	grpc_health_v1.RegisterHealthServer(grpcServer, NewHealthServer(s))
 	go h.run()
-	grpcServer.Serve(lis)
+	//Serve
+	log.Fatal(grpcServer.Serve(lis))
 }
 
 func NewServer(config *Config) *Server {

@@ -15,6 +15,6 @@ TAG_NAME=${DOCKER_IMAGE_NAME}:${APP_VERSION}
 docker build --rm -t ${TAG_NAME} .
 
 if [ "$1" = "push" ]; then
-    echo pushing ${TAG_NAME}
     gcloud docker push ${TAG_NAME}
+    echo image tag: ${TAG_NAME}
 fi
