@@ -5,6 +5,9 @@ import (
 	"os"
 
 	"fmt"
+	"net/http"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/otsimo/health"
 	"github.com/otsimo/health/tls"
@@ -13,8 +16,6 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/health/grpc_health_v1"
-	"net/http"
-	"time"
 )
 
 type Server struct {
