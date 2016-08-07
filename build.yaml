@@ -1,4 +1,4 @@
-version: 0.4
+version: 0.8
 outputdir: ./bin
 scripts:
   fmt: goimports -w src
