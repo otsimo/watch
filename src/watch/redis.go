@@ -80,6 +80,7 @@ func (r *RedisClient) Receive() {
 		h.broadcast <- &req
 	}
 }
-func (r *RedisClient) Health() error {
+
+func (r *RedisClient) Healthy() error {
 	return r.client.Ping().Err()
 }

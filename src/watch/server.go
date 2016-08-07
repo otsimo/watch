@@ -4,29 +4,28 @@ import (
 	"net"
 	"os"
 
-	pb "github.com/otsimo/otsimopb"
-
+	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/otsimo/health"
+	"github.com/otsimo/health/tls"
+	pb "github.com/otsimo/otsimopb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"net/http"
+	"time"
 )
 
 type Server struct {
-	Config *Config
-	Oidc   *Client
-	Redis  *RedisClient
-	NoAuth bool
+	Config   *Config
+	Oidc     *Client
+	Redis    *RedisClient
+	NoAuth   bool
+	tlsCheck *tls.TLSHealthChecker
 }
 
-func (s *Server) ListenGRPC() {
-	grpcPort := s.Config.GetGrpcPortString()
-	//Listen
-	lis, err := net.Listen("tcp", grpcPort)
-	if err != nil {
-		log.Fatalf("server.go: failed to listen %v for grpc", err)
-	}
+func init() {
 	var l = &log.Logger{
 		Out:       os.Stdout,
 		Formatter: &log.TextFormatter{FullTimestamp: true},
@@ -34,14 +33,32 @@ func (s *Server) ListenGRPC() {
 		Level:     log.GetLevel(),
 	}
 	grpclog.SetLogger(l)
+}
 
+func (s *Server) Healthy() error {
+	if s.tlsCheck != nil {
+		return s.tlsCheck.Healthy()
+	}
+	return nil
+}
+
+func (s *Server) ListenGRPC() error {
+	grpcPort := s.Config.GetGrpcPortString()
+	//Listen
+	lis, err := net.Listen("tcp", grpcPort)
+	if err != nil {
+		return fmt.Errorf("server.go: failed to listen, %v", err)
+	}
+	hs := health.New()
 	var opts []grpc.ServerOption
 	if s.Config.TlsCertFile != "" && s.Config.TlsKeyFile != "" {
 		creds, err := credentials.NewServerTLSFromFile(s.Config.TlsCertFile, s.Config.TlsKeyFile)
 		if err != nil {
-			log.Fatalf("server.go: Failed to generate credentials %v", err)
+			return fmt.Errorf("server.go: Failed to generate credentials %v", err)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
+		s.tlsCheck = tls.New(s.Config.TlsCertFile, s.Config.TlsKeyFile, time.Hour*24*19)
+		hs.Checks = append(hs.Checks, s.tlsCheck)
 	}
 	grpcServer := grpc.NewServer(opts...)
 
@@ -50,18 +67,21 @@ func (s *Server) ListenGRPC() {
 	}
 
 	pb.RegisterWatchServiceServer(grpcServer, watchGrpc)
-	log.Infof("server.go: Binding %s for grpc", grpcPort)
+	grpc_health_v1.RegisterHealthServer(grpcServer, hs)
+
 	if !s.Config.NoRedis {
 		cl, err := NewRedisClient(s.Config)
 		if err != nil {
-			log.Fatalf("failed to create redis client err=%v", err)
+			return fmt.Errorf("failed to create redis client, %v", err)
 		}
 		s.Redis = cl
+		hs.Checks = append(hs.Checks, s.Redis)
 	}
-	grpc_health_v1.RegisterHealthServer(grpcServer, NewHealthServer(s))
+
+	log.Infof("server.go: Binding %s for grpc and :%d for health", grpcPort, s.Config.HealthPort)
+	go http.ListenAndServe(s.Config.GetHealthPortString(), hs)
 	go h.run()
-	//Serve
-	log.Fatal(grpcServer.Serve(lis))
+	return grpcServer.Serve(lis)
 }
 
 func NewServer(config *Config) *Server {

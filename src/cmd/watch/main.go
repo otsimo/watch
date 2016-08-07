@@ -17,6 +17,7 @@ var config *watch.Config = watch.NewConfig()
 func RunAction(c *cli.Context) {
 	config.Debug = c.Bool("debug")
 	config.GrpcPort = c.Int("grpc-port")
+	config.HealthPort = c.Int("health-port")
 	config.TlsCertFile = c.String("tls-cert-file")
 	config.TlsKeyFile = c.String("tls-key-file")
 	config.ClientID = c.String("client-id")
@@ -70,6 +71,7 @@ func main() {
 
 	flags = []cli.Flag{
 		cli.IntFlag{Name: "grpc-port", Value: watch.DefaultGrpcPort, Usage: "grpc server port"},
+		cli.IntFlag{Name: "health-port", Value: watch.DefaultHealthPort, Usage: "health check port"},
 		cli.StringFlag{Name: "tls-cert-file", Value: "", Usage: "the server's certificate file for TLS connection"},
 		cli.StringFlag{Name: "tls-key-file", Value: "", Usage: "the server's private key file for TLS connection"},
 		cli.StringFlag{Name: "client-id", Value: "", Usage: "client id"},

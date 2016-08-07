@@ -1,0 +1,16 @@
+version: 0.4
+outputdir: ./bin
+scripts:
+  fmt: goimports -w src
+projects:
+  - name: watch
+    type: go
+    root: src/cmd/watch
+    imageName: gcr.io/otsimocloud/watch
+    dockerfile: ./Dockerfile
+    run: ./watch --debug --storage mongodb
+    golang:
+      package: cmd/watch
+      cgoEnabled: false
+      ldflags: "-w -X main.Version=${BUILD_VERSION}"
+      builder: gb

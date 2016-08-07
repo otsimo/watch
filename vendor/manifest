@@ -109,6 +109,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/otsimo/health",
+			"repository": "https://github.com/otsimo/health",
+			"revision": "9863219388e76e506d2f3310aad33b9b807cf18a",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/otsimo/otsimopb",
 			"repository": "https://github.com/otsimo/otsimopb",
 			"revision": "04edf4dbede8ea1bbbdb91b2cc78977c36100d8b",
