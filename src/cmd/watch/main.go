@@ -14,7 +14,7 @@ import (
 var Version string
 var config *watch.Config = watch.NewConfig()
 
-func RunAction(c *cli.Context) {
+func RunAction(c *cli.Context) error {
 	config.Debug = c.Bool("debug")
 	config.GrpcPort = c.Int("grpc-port")
 	config.HealthPort = c.Int("health-port")
@@ -36,7 +36,7 @@ func RunAction(c *cli.Context) {
 	}
 
 	server := watch.NewServer(config)
-	server.ListenGRPC()
+	return server.ListenGRPC()
 }
 
 func withEnvs(prefix string, flags []cli.Flag) []cli.Flag {
@@ -91,7 +91,9 @@ func main() {
 	app.Action = RunAction
 
 	log.Infoln("running", app.Name, "version:", app.Version)
-	app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		log.Fatalf("failed to run: %v", err)
+	}
 }
 
 func init() {
