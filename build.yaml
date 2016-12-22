@@ -8,7 +8,9 @@ projects:
     root: src/cmd/watch
     imageName: gcr.io/otsimocloud/watch
     dockerfile: ./Dockerfile
-    run: ./watch --debug --storage mongodb
+    run: ./watch --debug
+    develop:
+      keepdata: false
     golang:
       package: cmd/watch
       cgoEnabled: false

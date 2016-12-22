@@ -3,14 +3,11 @@ package watch
 import (
 	"net"
 	"os"
-
 	"fmt"
 	"net/http"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/otsimo/health"
-	"github.com/otsimo/health/tls"
 	pb "github.com/otsimo/otsimopb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -19,11 +16,10 @@ import (
 )
 
 type Server struct {
-	Config   *Config
-	Oidc     *Client
-	Redis    *RedisClient
-	NoAuth   bool
-	tlsCheck *tls.TLSHealthChecker
+	Config *Config
+	Oidc   *Client
+	Redis  *RedisClient
+	NoAuth bool
 }
 
 func init() {
@@ -37,9 +33,6 @@ func init() {
 }
 
 func (s *Server) Healthy() error {
-	if s.tlsCheck != nil {
-		return s.tlsCheck.Healthy()
-	}
 	return nil
 }
 
@@ -58,7 +51,6 @@ func (s *Server) ListenGRPC() error {
 			return fmt.Errorf("server.go: Failed to generate credentials %v", err)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
-		s.tlsCheck = tls.New(s.Config.TlsCertFile, s.Config.TlsKeyFile, time.Hour*24*19)
 		hs.Checks = append(hs.Checks, s.tlsCheck)
 	}
 	grpcServer := grpc.NewServer(opts...)
