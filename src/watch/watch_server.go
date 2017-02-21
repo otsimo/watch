@@ -59,7 +59,7 @@ func (w *watchGrpcServer) Emit(ctx context.Context, in *apipb.EmitRequest) (*api
 		logrus.Errorf("watch_server.go: failed to get jwt %+v", err)
 		return nil, errors.New("failed to get jwt")
 	}
-	_, _, err = authToken(w.server.Oidc, jwt, false)
+	_, err = authToken(w.server.Oidc, jwt)
 	if err != nil {
 		logrus.Errorf("watch_server.go: failed to authorize user %+v", err)
 		return nil, errors.New("unauthorized user")
@@ -74,7 +74,7 @@ func (w *watchGrpcServer) Watch(req *apipb.WatchRequest, stream apipb.WatchServi
 		logrus.Errorf("watch_server.go: failed to get jwt %+v", err)
 		return errors.New("failed to get jwt")
 	}
-	id, _, err := authToken(w.server.Oidc, jwt, false)
+	id, err := authToken(w.server.Oidc, jwt)
 	if err != nil && !w.server.NoAuth {
 		logrus.Errorf("watch_server.go: failed to authorize user %+v", err)
 		return errors.New("unauthorized user")

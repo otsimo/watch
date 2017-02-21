@@ -17,9 +17,7 @@ import (
 )
 
 const (
-	OtsimoUserTypeClaim = "otsimo.com/typ"
-	OtsimoAdminUserType = "adm"
-	keySyncWindow       = 5 * time.Second
+	keySyncWindow = 5 * time.Second
 )
 
 func NewOIDCClient(id, secret, discovery string) (*Client, error) {
@@ -67,38 +65,30 @@ func getJWTToken(ctx context.Context) (jose.JWT, error) {
 	return jose.ParseJWT(val)
 }
 
-func authToken(oidc *Client, jwt jose.JWT, mustBeAdmin bool) (string, bool, error) {
+func authToken(oidc *Client, jwt jose.JWT) (string, error) {
 	claims, err := jwt.Claims()
 	if err != nil {
-		return "", false, fmt.Errorf("auth.go: failed to get claims %v", err)
+		return "", fmt.Errorf("auth.go: failed to get claims %v", err)
 	}
 
 	aud, ok, err := claims.StringClaim("aud")
 	if err != nil || !ok || aud == "" {
-		return "", false, fmt.Errorf("auth.go: failed to parse 'aud' claim: %v", err)
+		return "", fmt.Errorf("auth.go: failed to parse 'aud' claim: %v", err)
 	}
 
 	sub, ok, err := claims.StringClaim("sub")
 	if err != nil {
-		return "", false, fmt.Errorf("auth.go: failed to parse 'sub' claim: %v", err)
+		return "", fmt.Errorf("auth.go: failed to parse 'sub' claim: %v", err)
 	}
 	if !ok || sub == "" {
-		return "", false, fmt.Errorf("auth.go: missing required 'sub' claim")
+		return "", fmt.Errorf("auth.go: missing required 'sub' claim")
 	}
 
 	err = oidc.VerifyJWT(jwt, aud)
 	if err != nil {
-		return sub, false, fmt.Errorf("auth.go: Failed to verify signature: %v", err)
+		return sub, fmt.Errorf("auth.go: Failed to verify signature: %v", err)
 	}
-
-	typ, _, _ := claims.StringClaim(OtsimoUserTypeClaim)
-
-	if mustBeAdmin {
-		if typ != OtsimoAdminUserType {
-			return sub, false, fmt.Errorf("auth.go: user must be admin")
-		}
-	}
-	return sub, typ == OtsimoAdminUserType, nil
+	return sub, nil
 }
 
 type Client struct {

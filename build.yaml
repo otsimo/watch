@@ -5,14 +5,15 @@ scripts:
 projects:
   - name: watch
     type: go
-    root: src/cmd/watch
+    root: src/bin/watch
     imageName: gcr.io/otsimocloud/watch
     dockerfile: ./Dockerfile
     run: ./watch --debug
     develop:
-      keepdata: false
+      ports:
+        - "30858:18858"
     golang:
-      package: cmd/watch
+      package: bin/watch
       cgoEnabled: false
       ldflags: "-w -X main.Version=${BUILD_VERSION}"
       builder: gb
