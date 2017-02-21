@@ -1,10 +1,10 @@
 package watch
 
 import (
-	"net"
-	"os"
 	"fmt"
+	"net"
 	"net/http"
+	"os"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/otsimo/health"
@@ -51,7 +51,6 @@ func (s *Server) ListenGRPC() error {
 			return fmt.Errorf("server.go: Failed to generate credentials %v", err)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
-		hs.Checks = append(hs.Checks, s.tlsCheck)
 	}
 	grpcServer := grpc.NewServer(opts...)
 
